@@ -4,33 +4,31 @@
 #include <string>
 #include <cstring>
 
-#define ERROR_STATE -99
-
 using namespace std;
 
 typedef int State;
-	enum symbols {
-		MONTH,
-		NUM1,
-		NUM2,
-		REST,
-		NOT_TOKEN
-	};
+enum symbols {
+	MONTH,
+	NUM1,
+	NUM2,
+	REST,
+	NOT_TOKEN
+};
 
-	enum states {
-		DT_START,
-		DT_MONTH,
-		DT_COM1,
-		DT_COM2,
-		DT_COM3,
-		DT_NUM1,
-		DT_NUM2,
-		
-		DT_ACCEPT_1_2,
-		DT_ACCEPT_3,
-		DT_ACCEPT_4,
-		DT_ACCEPT_5,
-	};
+enum states {
+	DT_START,
+	DT_MONTH,
+	DT_COM1,
+	DT_COM2,
+	DT_COM3,
+	DT_NUM1,
+	DT_NUM2,
+
+	DT_ACCEPT_1_2,
+	DT_ACCEPT_3,
+	DT_ACCEPT_4,
+	DT_ACCEPT_5,
+};
 
 
 class Tokenizer {
@@ -50,13 +48,11 @@ public:
 		string word;
 
 		while (stream >> word) {
-
 			if (word.at(word.length() - 1) == ',') {
 				word.pop_back();
 				tokens.push_back(word);
 				tokens.push_back(",");
 			}
-
 			else {
 				tokens.push_back(word);
 			}
@@ -83,19 +79,18 @@ private:
 
 	const State table[11][4] = {
 		//month    num1     num2      , 
-	   { DT_MONTH, DT_NUM2, ERROR_STATE, ERROR_STATE}, //start
-   {ERROR_STATE, DT_NUM1, DT_NUM1, DT_COM1}, //month
-   {ERROR_STATE, DT_NUM1, DT_NUM1, ERROR_STATE}, //com1
-   {DT_ACCEPT_4, ERROR_STATE, DT_ACCEPT_1_2, DT_ACCEPT_4}, //com2
-   {DT_ACCEPT_3, ERROR_STATE, ERROR_STATE, ERROR_STATE},//com3
-   {DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM1},//num1
-   {ERROR_STATE,ERROR_STATE,ERROR_STATE, DT_COM3},//num2
+		{ DT_MONTH, DT_NUM2, DT_START, DT_START }, //start
+	{ DT_START, DT_NUM1, DT_NUM1, DT_COM1 }, //month
+	{ DT_START, DT_NUM1, DT_NUM1, DT_START }, //com1
+	{ DT_ACCEPT_4, DT_START, DT_ACCEPT_1_2, DT_ACCEPT_4 }, //com2
+	{ DT_ACCEPT_3, DT_START, DT_START, DT_START },//com3
+	{ DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM1 },//num1
+	{ DT_START, DT_START, DT_START, DT_COM3 },//num2
 
-{DT_START, DT_START, DT_START,DT_START}, //accpet 1,2
-   {DT_START, DT_START, DT_START,DT_START}, //accept 3
-   {DT_START, DT_START, DT_START,DT_START}, //accept 4
-   {DT_START, DT_START, DT_START,DT_START}, //accept 5
-
+	{ DT_START, DT_START, DT_START,DT_START }, //accpet 1,2
+	{ DT_START, DT_START, DT_START,DT_START }, //accept 3
+	{ DT_START, DT_START, DT_START,DT_START }, //accept 4
+	{ DT_START, DT_START, DT_START,DT_START }, //accept 5
 
 	};
 
@@ -139,7 +134,6 @@ private:
 			if (num > 0 && num <= 31) {
 				return NUM1;
 			}
-			
 			else if (num > 31 && num < 3000) {
 				return NUM2;
 			}
@@ -154,7 +148,7 @@ public:
 	Table() {
 
 		for (int i = DT_START; i <= DT_ACCEPT_5; i++) {
-			if (i >= DT_ACCEPT_1_2 && i <= DT_ACCEPT_5) {
+			if (i >= DT_ACCEPT_1_2 || i <= DT_ACCEPT_5) {
 				Accept[i] = true;
 			}
 			else {
@@ -165,15 +159,13 @@ public:
 	}
 
 	State getNext(State state, string token) {
-
 		int symbol = get_symbolset(token);
 
 		if (symbol != NOT_TOKEN) {
 			return table[state][symbol];
 		}
-
 		else {
-			return ERROR_STATE;
+			return DT_START;
 		}
 	}
 
@@ -211,37 +203,27 @@ public:
 
 		State state = DT_START;
 
-		int i = 90;
+		string temp = "";
 
-		while (i < size) {
-
-			string token = tokens[i];
-
-			while (table.is_Accept(state) == false && state != ERROR_STATE) {
-
-				State new_state = table.getNext(state, token);
-
-				if (i < size){
-					token = tokens[++i];
-				}
-				else {
-					break;
-				}
-				state = new_state;
+		for (int i = 0; i < size; i++) {
+			State new_state = table.getNext(state, tokens[i]);
+			
+			if (new_state == DT_START){
+			}
+			else{
+				temp.append(tokens[i]);
 			}
 
 			if (table.is_Accept(state)) {
-				result.push_back(token);
+				if (!temp.empty()) {
+					result.push_back(temp);
+					temp.clear();
+				}
 			}
-			if (state == ERROR_STATE) {
-				state = DT_START;
-			}
-			i++;
+			state = new_state;
 		}
+
 	}
-
-
-
 
 	void print_result() {
 
@@ -268,12 +250,13 @@ public:
 		}
 	}
 
-	bool Advance(int state, int i) {
+	bool remain_tokens(int state, int i) {
 		int size = tokens.size();
-		if (i > size) {
+
+		if (i + 1 > size) {
 			return false;
 		}
-		else if (table.getNext(state, tokens[i + 1]) != ERROR_STATE) {
+		else if (table.getNext(state, tokens[i + 1]) != DT_START) {
 			return true;
 		}
 		else {
@@ -294,6 +277,7 @@ int main() {
 	int size = tokens.size();
 
 	DFA dfa(tokens);
+
 	dfa.Run();
 
 	dfa.print_result();
