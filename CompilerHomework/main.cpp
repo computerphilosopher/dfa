@@ -66,6 +66,7 @@ public:
 	}
 };
 
+/*테이블 데이터를 저장하고 */
 class Table {
 
 private:
@@ -77,20 +78,20 @@ private:
 		"Oct.", "October", "Nov.", "November", "Dec.", "December"
 	};
 
-	const State table[11][4] = {
-		//month    num1     num2      , 
-		{ DT_MONTH, DT_NUM2, DT_START, DT_START }, //start
-	{ DT_START, DT_NUM1, DT_NUM1, DT_COM1 }, //month
-	{ DT_START, DT_NUM1, DT_NUM1, DT_START }, //com1
-	{ DT_ACCEPT_4, DT_START, DT_ACCEPT_1_2, DT_ACCEPT_4 }, //com2
-	{ DT_ACCEPT_3, DT_START, DT_START, DT_START },//com3
-	{ DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM2 },//num1
-	{ DT_START, DT_START, DT_START, DT_COM3 },//num2
+	const State table[11][5] = {
+		//month     num1     num2      ,         others 
+		{ DT_MONTH, DT_NUM2, DT_START, DT_START, DT_START}, //start
+	{ DT_START, DT_NUM1, DT_NUM1, DT_COM1, DT_START}, //month
+	{ DT_START, DT_NUM1, DT_NUM1, DT_START, DT_START}, //com1
+	{ DT_ACCEPT_4, DT_START, DT_ACCEPT_1_2, DT_ACCEPT_4, DT_START }, //com2
+	{ DT_ACCEPT_3, DT_START, DT_START, DT_START, DT_START },//com3
+	{ DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM2, DT_ACCEPT_5 },//num1
+	{ DT_START, DT_START, DT_START, DT_COM3, DT_START },//num2
 
-	{ DT_START, DT_START, DT_START,DT_START }, //accpet 1,2
-	{ DT_START, DT_START, DT_START,DT_START }, //accept 3
-	{ DT_START, DT_START, DT_START,DT_START }, //accept 4
-	{ DT_START, DT_START, DT_START,DT_START }, //accept 5
+	{ DT_START, DT_START, DT_START,DT_START, DT_START }, //accpet 1,2
+	{ DT_START, DT_START, DT_START,DT_START, DT_START }, //accept 3
+	{ DT_START, DT_START, DT_START,DT_START, DT_START }, //accept 4
+	{ DT_START, DT_START, DT_START,DT_START, DT_START }, //accept 5
 
 	};
 
@@ -161,12 +162,7 @@ public:
 	State getNext(State state, string token) {
 		int symbol = get_symbolset(token);
 
-		if (symbol != NOT_TOKEN) {
-			return table[state][symbol];
-		}
-		else {
-			return DT_START;
-		}
+		return table[state][symbol];
 	}
 
 	State start_state() {
@@ -205,19 +201,24 @@ public:
 
 		string temp = "";
 
-		for (int i = 0; i < size; i++) {
-			
+		for (int i = 49; i < size; i++) {
+
 			State new_state = table.getNext(state, tokens[i]);
-			
-			if (new_state != DT_START){
-				temp.append(tokens[i]);
+
+			if (new_state != DT_START) {
+				if (new_state != DT_ACCEPT_5) {
+					temp.append(tokens[i]);
+				}
 			}
-			
-			else{
+
+			else {
+				if (table.is_Accept(state)) {
+					result.push_back(temp);
+				}
 				temp.clear();
 			}
 
-			if (table.is_Accept(new_state)){
+			if (table.is_Accept(new_state)) {
 				if (!temp.empty()) {
 					if (new_state == DT_ACCEPT_4) {
 						temp.pop_back();
@@ -289,7 +290,7 @@ int main() {
 	dfa.print_result();
 	dfa.write_to_file("date.txt");
 
-	
+
 	getchar();
 	return 0;
 
