@@ -84,7 +84,7 @@ private:
 	{ DT_START, DT_NUM1, DT_NUM1, DT_START }, //com1
 	{ DT_ACCEPT_4, DT_START, DT_ACCEPT_1_2, DT_ACCEPT_4 }, //com2
 	{ DT_ACCEPT_3, DT_START, DT_START, DT_START },//com3
-	{ DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM1 },//num1
+	{ DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM2 },//num1
 	{ DT_START, DT_START, DT_START, DT_COM3 },//num2
 
 	{ DT_START, DT_START, DT_START,DT_START }, //accpet 1,2
@@ -148,7 +148,7 @@ public:
 	Table() {
 
 		for (int i = DT_START; i <= DT_ACCEPT_5; i++) {
-			if (i >= DT_ACCEPT_1_2 || i <= DT_ACCEPT_5) {
+			if (i >= DT_ACCEPT_1_2 && i <= DT_ACCEPT_5) {
 				Accept[i] = true;
 			}
 			else {
@@ -206,16 +206,22 @@ public:
 		string temp = "";
 
 		for (int i = 0; i < size; i++) {
+			
 			State new_state = table.getNext(state, tokens[i]);
 			
-			if (new_state == DT_START){
-			}
-			else{
+			if (new_state != DT_START){
 				temp.append(tokens[i]);
 			}
+			
+			else{
+				temp.clear();
+			}
 
-			if (table.is_Accept(state)) {
+			if (table.is_Accept(new_state)){
 				if (!temp.empty()) {
+					if (new_state == DT_ACCEPT_4) {
+						temp.pop_back();
+					}
 					result.push_back(temp);
 					temp.clear();
 				}
@@ -283,6 +289,7 @@ int main() {
 	dfa.print_result();
 	dfa.write_to_file("date.txt");
 
+	
 	getchar();
 	return 0;
 
