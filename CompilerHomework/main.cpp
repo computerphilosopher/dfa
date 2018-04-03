@@ -2,117 +2,33 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <unordered_map>
-#include <algorithm>
+#include <cstring>
 
 using namespace std;
 
+typedef int State;
+	enum symbols {
+		MONTH,
+		NUM1,
+		NUM2,
+		REST,
+		NOT_TOKEN
+	};
 
-class SymbolSet {
+	enum states {
+		DT_START,
+		DT_MONTH,
+		DT_COM1,
+		DT_COM2,
+		DT_COM3,
+		DT_NUM1,
+		DT_NUM2,
 
-private:
-	string name;
-	vector <string> symbols;
-public:
-	vector <SymbolSet> subset;
-
-	SymbolSet(string name, vector<string> symbols) {
-		this->symbols = symbols;
-	}
-
-	void make_subset(SymbolSet child, vector<string> child_symbols) {
-
-		int size = child_symbols.size();
-
-		for (int i = 0; i < size; i++) {
-			subset.push_back(child);
-		}
-	}
-
-	bool is_element(string element) {
-		return std::find(symbols.begin(), symbols.end(), element) != symbols.end();
-	}
-
-	int subset_count() {
-		return subset.size();
-	}
-
-	vector<string> get_symbols() {
-		return symbols;
-	}
-
-	bool Equals(SymbolSet s) {
-		return s.get_symbols() == symbols;
-	}
-};
-
-
-class State {
-
-private:
-	bool accept;
-	string name;
-	unordered_map <SymbolSet, State> transition;
-	
-
-public:
-
-	static State start;
-
-	State() {
-
-	}
-
-	State(string name, bool accept) {
-		this->name = name;
-		this->accept = accept;
-	}
- 
-	void add_transition(SymbolSet symbol, State state) {
-		transition[symbol] = state;
-	}
-
-	State get_transition(SymbolSet symbol) {
-
-		if (transition.count(symbol)) {
-			return transition[symbol];
-		}
-		else {
-			return start;
-		}
-	}
-
-	bool empty() {
-		return (name.empty() && transition.empty());
-	}
-	
-
-};
-
-
-class Automata {
-
-private:
-	vector<string> tokens;
-	vector<State> states;
-	vector<string> pattern;
-
-public:
-
-	Automata(vector<string> tokens, vector<State> states) {
-		this->tokens = tokens;
-		this->states = states;
-	}
-
-	void Run() {
-
-		int size = tokens.size();
-		vector<string> temp;
-		// State s = states.start;
-		for (int i = 0; i < size; i++) {
-		}
-	}
-};
+		DT_ACCEPT_1_2,
+		DT_ACCEPT_3,
+		DT_ACCEPT_4,
+		DT_ACCEPT_5,
+	};
 
 
 class Tokenizer {
@@ -127,13 +43,22 @@ public:
 	}
 
 	void ToTokens() {
+
 		ifstream stream(filePath, ios::in);
 		string word;
 
 		while (stream >> word) {
-			tokens.push_back(word);
+			if (word.at(word.length() - 1) == ',') {
+				word.pop_back();
+				tokens.push_back(word);
+				tokens.push_back(",");
+			}
+			else {
+				tokens.push_back(word);
+			}
 		}
 
+		stream.close();
 	}
 
 	vector<string> getTokens() {
@@ -141,11 +66,208 @@ public:
 	}
 };
 
+class Table {
+
+private:
+
+	const vector<string> month = {
+		"Jan.", "January", "Feb.", "February", "Mar.", "March",
+		"Apr.", "April", "May", "May", "June", "June",
+		"July", "July", "Aug.", "August", "Sep.", "September",
+		"Oct.", "October", "Nov.", "November", "Dec.", "December"
+	};
+
+	const State table[8][4] = {
+		 //month    num1     num2      , 
+		{ DT_MONTH, DT_NUM2, DT_START, DT_START},
+	{DT_START, DT_NUM1, DT_NUM1, DT_COM1},
+	{DT_START, DT_NUM1, DT_NUM1, DT_START},
+	{DT_ACCEPT_4, DT_START, DT_ACCEPT_1_2, DT_ACCEPT_4},
+	{DT_ACCEPT_3, DT_START, DT_START, DT_START},
+	{DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM1},
+	{DT_START, DT_START, DT_START, DT_COM3},
+
+	};
+
+	bool Accept[11];
+
+	int get_symbolset(string token) {
+
+		bool isNum = false;
+		bool isMonth = false;
+
+		const char *str = token.c_str();
+
+		int size = token.length();
+
+		for (int i = 0; i<size; i++) {
+			if (isdigit(str[i])) {
+				isNum = true;
+			}
+		}
+
+		size = month.size();
+
+		for (int i = 0; i < size; i++) {
+			if (token == month[i]) {
+				isMonth = true;
+			}
+		}
+
+		if (isMonth) {
+			return MONTH;
+		}
+
+		else if (token == ",") {
+			return REST;
+		}
+
+		else if (isNum) {
+			int num = atoi(str);
+			if (num>0 && num <= 31) {
+				return NUM1;
+			}
+			else if(num> 31 && num > 3000){
+				return NUM2;
+			}
+		}
+
+		return NOT_TOKEN;
+
+	}
+
+public:
+
+	Table() {
+
+		for (int i = DT_START; i <= DT_ACCEPT_5; i++) {
+			if (i >= DT_ACCEPT_1_2 && i <= DT_ACCEPT_5) {
+				Accept[i] = true;
+			}
+			else {
+				Accept[i] = false;
+			}
+		}
+
+	}
+	
+	State getNext(State state, string token) {
+		int symbol = get_symbolset(token);
+
+		if (symbol != NOT_TOKEN) {
+			return table[state][symbol];
+		}
+		else {
+			return DT_START;
+		}
+	}
+
+	State start_state() {
+		return DT_START;
+	}
+
+	bool is_Accept(State state) {
+		return Accept[state];
+	}
+
+	void print_accept() {
+		for (int i = 0; i < 11; i++) {
+			cout << Accept[i] << endl;
+		}
+	}
+
+};
+
+class DFA {
+
+private:
+	vector<string> tokens;
+	Table table;
+	vector<string> result;
+	int count_result;
+
+public:
+	DFA(vector<string> tokens) {
+		this->tokens = tokens;
+	}
+
+	void Run() {
+
+		int size = tokens.size();
+		State state = DT_START;
+
+		string temp = "";
+
+		for (int i = 0; i < size; i++) {
+
+			state = table.getNext(state, tokens[i]);
+
+			if (state != DT_START) {
+				temp.append(tokens[i]);
+			}
+			else if (state == DT_START) {
+				temp.clear();
+			}
+
+			else if (table.is_Accept(state)) {
+				if (state == DT_ACCEPT_4) {
+					temp.pop_back();
+				}
+
+				result.push_back(temp);
+				temp.clear();
+			}
+		}
+	}
+
+	void print_result() {
+
+		if (result.empty()) {
+			cout << "result is empty" << endl;
+			return;
+		}
+
+		int size = result.size();
+
+		for (int i = 0; i < size; i++) {
+			cout << result[i] << endl;
+		}
+	}
+
+
+	void write_to_file(string filePath) {
+		ofstream stream;
+		stream.open(filePath, ios::trunc);
+
+		int size = result.size();
+
+		for (int i = 0; i < size; i++) {
+			stream << result[i];
+		}
+	}
+
+};
+
 int main() {
 
-	Tokenizer tokenizer("hw-2sample.txt");
-	vector <string> t = tokenizer.getTokens();
+	bool Accept[11] = { false };
 
-	int size = t.size();
+	Tokenizer tokenizer("hw2-sample.txt");
+	tokenizer.ToTokens();
+
+	vector<string> tokens = tokenizer.getTokens();
+
+	ofstream fout;
+	int size = tokens.size();
+
+	DFA dfa(tokens);
+
+	dfa.Run();
+
+	dfa.print_result();
+	dfa.write_to_file("date.txt");
+
+	getchar();
+	return 0;
 
 }
