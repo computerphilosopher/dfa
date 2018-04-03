@@ -231,7 +231,7 @@ public:
 		}
 
 	}
-
+ 
 	void print_result() {
 
 		if (result.empty()) {
@@ -252,9 +252,23 @@ public:
 
 		int size = result.size();
 
+		int j = 1;
+
 		for (int i = 0; i < size; i++) {
-			stream << result[i];
+			
+			if (j > 20) {
+				break;
+			}
+			
+			string temp = "(" + to_string(j) + ")";
+			
+			if (!result[i].empty()) {
+				stream << temp + result[i] << endl;
+				j++;
+			}
 		}
+		string temp = "total data pattern: ";
+		stream << temp + to_string(result.size());
 	}
 
 	bool remain_tokens(int state, int i) {
@@ -289,7 +303,6 @@ int main() {
 
 	dfa.print_result();
 	dfa.write_to_file("date.txt");
-
 
 	getchar();
 	return 0;
