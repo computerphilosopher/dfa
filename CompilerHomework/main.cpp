@@ -9,29 +9,6 @@ using namespace std;
 typedef int State;
 
 
-enum symbols {
-	MONTH,
-	NUM1,
-	NUM2,
-	REST,
-	NOT_TOKEN
-};
-
-enum states {
-	DT_START,
-	DT_MONTH,
-	DT_COM1,
-	DT_COM2,
-	DT_COM3,
-	DT_NUM1,
-	DT_NUM2,
-
-	DT_ACCEPT_1_2,
-	DT_ACCEPT_3,
-	DT_ACCEPT_4,
-	DT_ACCEPT_5,
-};
-
 /* 파일을 문자열의 벡터로 바꾸어주는 클래스*/
 class Tokenizer {
 
@@ -61,9 +38,103 @@ public:
 	}
 };
 
+class SymbolSet {
+
+private:
+	enum token_type {
+		INTEGER,
+		STRING
+	};
+
+	string name;
+	int enumValue;
+
+	/*토큰이 문자나 문자열일 경우*/
+	vector<string> tokens;
+
+	/*토큰이 일정 범위의 숫자일 경우*/
+	int start;
+	int end;
+
+	int type;
+
+	void init(string name, int enumValue) {
+		this->name = name;
+		this->enumValue = enumValue;
+	}
+
+public:
+	SymbolSet(string name, int enumValue, vector<string> tokens) {
+		init(name, enumValue);
+		this->tokens = tokens;
+		this->type = STRING;
+	}
+
+	SymbolSet(string name, int enumValue, int start, int end) {
+		init(name, enumValue);
+		this->start = start;
+		this->end = end;
+		this->type = INTEGER;
+	}
+
+	bool is_in_set(string input) {
+		if (type != STRING) {
+			return false;
+		}
+		else {
+			int size = tokens.size();
+			for (int i = 0; i < size; i++) {
+				if (tokens[i] == input) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	bool is_in_set(int input) {
+		if (type != INTEGER) {
+			return false;
+		}
+		else {
+			if (input >= start && input <= end) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	int get_enumValue(){
+		return enumValue;
+	}
+};
+
+
 class Table {
 
 private:
+	enum symbols {
+		MONTH,
+		NUM1,
+		NUM2,
+		REST,
+		NOT_TOKEN
+	};
+
+	enum states {
+		DT_START,
+		DT_MONTH,
+		DT_COM1,
+		DT_COM2,
+		DT_COM3,
+		DT_NUM1,
+		DT_NUM2,
+
+		DT_ACCEPT_1_2,
+		DT_ACCEPT_3,
+		DT_ACCEPT_4,
+		DT_ACCEPT_5,
+	};
 
 	const vector<string> month = {
 		"Jan.", "January", "Feb.", "February", "Mar.", "March",
@@ -90,76 +161,39 @@ private:
 	};
 
 	/* Accept 여부를 확인하기 위한 boolean 배열*/
-	bool Accept[11];
 
-	int get_symbolset(string token) {
+	vector<bool> Accept;
+	vector<SymbolSet> symbolSet;
 
-		bool isNum = false;
-		bool isMonth = false;
+	int get_symbolset(string input) {
 
-		const char *str = token.c_str();
-
-		int size = token.length();
+		int size = symbolSet.size();
 
 		for (int i = 0; i < size; i++) {
-			if (isdigit(str[i])) {
-				isNum = true;
+			if (symbolSet[i].is_in_set(input)) {
+				return symbolSet[i].get_enumValue;
 			}
 		}
-
-		size = month.size();
-
-		for (int i = 0; i < size; i++) {
-			if (token == month[i]) {
-				isMonth = true;
-			}
-		}
-
-		if (isMonth) {
-			return MONTH;
-		}
-
-		else if (token == ",") {
-			return REST;
-		}
-
-		else if (isNum) {
-
-			int num = atoi(str);
-
-			if (num > 0 && num <= 31) {
-				return NUM1;
-			}
-			else if (num > 31 && num < 3000) {
-				return NUM2;
-			}
-		}
-
-		return NOT_TOKEN;
 
 	}
 
 public:
 
-	Table() {
-
-		for (int i = DT_START; i <= DT_ACCEPT_5; i++) {
-			if (i >= DT_ACCEPT_1_2 && i <= DT_ACCEPT_5) {
-				Accept[i] = true;
-			}
-			else {
-				Accept[i] = false;
-			}
-		}
-
+	Table(vector<SymbolSet> symbolSet) {
+		this->symbolSet = symbolSet;
 	}
 
 	State getNext(State state, string token) {
+
 		int symbol = get_symbolset(token);
 
 		return table[state][symbol];
 	}
- 
+
+	State start_state() {
+		return DT_START;
+	}
+
 	bool is_Accept(State state) {
 		return Accept[state];
 	}
@@ -174,6 +208,7 @@ private:
 	int count_result;
 
 public:
+
 	DFA(vector<string> tokens) {
 		this->tokens = tokens;
 	}
@@ -182,7 +217,7 @@ public:
 
 		int size = tokens.size();
 
-		State state = DT_START;
+		State state = table.start_state();
 
 		string temp = "";
 
@@ -190,10 +225,8 @@ public:
 
 			State new_state = table.getNext(state, tokens[i]);
 
-			if (new_state != DT_START) {
-				if (new_state != DT_ACCEPT_5) {
-					temp.append(tokens[i]);
-				}
+			if (new_state != table.start_state()) {
+				temp.append(tokens[i]);
 			}
 
 			else {
@@ -205,10 +238,6 @@ public:
 
 			if (table.is_Accept(new_state) && !temp.empty()) {
 				/*마지막 쉼표 떼기*/
-				string last_letter = temp.substr(temp.length() - 1, temp.length());
-				if (last_letter == ",") {
-					temp.pop_back();
-				}
 				result.push_back(temp);
 				temp.clear();
 			}
@@ -230,10 +259,11 @@ public:
 		for (int i = 0; i < size; i++) {
 			cout << result[i] << endl;
 		}
-		cout <<  result.size() << endl;
+		cout << result.size() << endl;
 	}
 
 	void write_to_file(string filePath) {
+
 		ofstream stream;
 		stream.open(filePath, ios::trunc);
 
