@@ -3,12 +3,12 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include "table_driven.h" 
 
 using namespace std;
 
 typedef int State;
-
-
+ 
 /* 파일을 문자열의 벡터로 바꾸어주는 클래스*/
 class Tokenizer {
 
@@ -38,7 +38,7 @@ public:
 	}
 };
 
-class SymbolSet {
+class SymbolSet{
 
 private:
 	enum token_type {
@@ -64,6 +64,7 @@ private:
 	}
 
 public:
+
 	SymbolSet(string name, int enumValue, vector<string> tokens) {
 		init(name, enumValue);
 		this->tokens = tokens;
@@ -78,20 +79,29 @@ public:
 	}
 
 	bool is_in_set(string input) {
-		if (type != STRING) {
-			return false;
-		}
-		else {
+		if (type == STRING) {
+			
 			int size = tokens.size();
+			
 			for (int i = 0; i < size; i++) {
 				if (tokens[i] == input) {
 					return true;
 				}
 			}
+
+		}
+		else if(type == INTEGER){
+			const char *temp = input.c_str();
+			int t = atoi(temp);
+
+			if (t >= start && t <= end) {
+				return true;
+			}
 		}
 		return false;
 	}
 
+	/*
 	bool is_in_set(int input) {
 		if (type != INTEGER) {
 			return false;
@@ -103,9 +113,14 @@ public:
 		}
 		return false;
 	}
+	*/
 
-	int get_enumValue(){
+	int get_enumValue() {
 		return enumValue;
+	}
+
+	string get_name() {
+		return name;
 	}
 };
 
@@ -113,28 +128,6 @@ public:
 class Table {
 
 private:
-	enum symbols {
-		MONTH,
-		NUM1,
-		NUM2,
-		REST,
-		NOT_TOKEN
-	};
-
-	enum states {
-		DT_START,
-		DT_MONTH,
-		DT_COM1,
-		DT_COM2,
-		DT_COM3,
-		DT_NUM1,
-		DT_NUM2,
-
-		DT_ACCEPT_1_2,
-		DT_ACCEPT_3,
-		DT_ACCEPT_4,
-		DT_ACCEPT_5,
-	};
 
 	const vector<string> month = {
 		"Jan.", "January", "Feb.", "February", "Mar.", "March",
@@ -162,7 +155,7 @@ private:
 
 	/* Accept 여부를 확인하기 위한 boolean 배열*/
 
-	vector<bool> Accept;
+	bool Accept[11];
 	vector<SymbolSet> symbolSet;
 
 	int get_symbolset(string input) {
@@ -171,16 +164,30 @@ private:
 
 		for (int i = 0; i < size; i++) {
 			if (symbolSet[i].is_in_set(input)) {
-				return symbolSet[i].get_enumValue;
+				return symbolSet[i].get_enumValue();
 			}
 		}
-
+		return NOT_TOKEN;
 	}
 
 public:
 
+	Table() {
+		for (int i = 0; i < 11; i++) {
+			Accept[i] = { false };
+		}
+		for (int i = DT_ACCEPT_1_2; i <= DT_ACCEPT_5; i++) {
+			Accept[i] = { true };
+		}
+
+	}
+
 	Table(vector<SymbolSet> symbolSet) {
 		this->symbolSet = symbolSet;
+	}
+
+	void add_symbol(SymbolSet symbol) {
+		symbolSet.push_back(symbol);
 	}
 
 	State getNext(State state, string token) {
@@ -209,8 +216,14 @@ private:
 
 public:
 
-	DFA(vector<string> tokens) {
+	DFA(vector<string> tokens, SymbolSet set[], int set_size) {
+		
 		this->tokens = tokens;
+
+		for (int i = 0; i < set_size; i++) {
+			table.add_symbol(set[i]);
+		}
+
 	}
 
 	void Run() {
@@ -229,15 +242,14 @@ public:
 				temp.append(tokens[i]);
 			}
 
-			else {
-				if (table.is_Accept(state)) {
+			else {//new_state == DT_START
+				if (table.is_Accept(state)){
 					result.push_back(temp);
 				}
 				temp.clear();
 			}
 
 			if (table.is_Accept(new_state) && !temp.empty()) {
-				/*마지막 쉼표 떼기*/
 				result.push_back(temp);
 				temp.clear();
 			}
@@ -287,7 +299,6 @@ public:
 		string temp = "total data pattern: ";
 		stream << temp + to_string(result.size());
 	}
-
 };
 
 int main() {
@@ -297,17 +308,21 @@ int main() {
 
 	vector<string> tokens = tokenizer.getTokens();
 
-	ofstream fout;
-	int size = tokens.size();
+	vector<string> month_tokens = {
+		"Jan.", "January", "Feb.", "February", "Mar.", "March",
+		"Apr.", "April", "May", "May", "June", "June",
+		"July", "July", "Aug.", "August", "Sep.", "September",
+		"Oct.", "October", "Nov.", "November", "Dec.", "December"
+	};
 
-	DFA dfa(tokens);
+	SymbolSet symbolSet[3] = { SymbolSet("month", symbols::MONTH, month_tokens), SymbolSet("NUM1", symbols::NUM1, 1, 31), SymbolSet("NUM2", symbols::NUM1, 32, 2999) };
+
+	DFA dfa(tokens, symbolSet, 3);
 
 	dfa.Run();
-
 	dfa.print_result();
-	dfa.write_to_file("date.txt");
 
 	getchar();
-	return 0;
 
+	return 0;
 }
