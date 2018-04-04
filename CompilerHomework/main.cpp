@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
@@ -7,6 +7,8 @@
 using namespace std;
 
 typedef int State;
+
+
 enum symbols {
 	MONTH,
 	NUM1,
@@ -30,7 +32,7 @@ enum states {
 	DT_ACCEPT_5,
 };
 
-
+/* 파일을 문자열의 벡터로 바꾸어주는 클래스*/
 class Tokenizer {
 
 private:
@@ -48,14 +50,7 @@ public:
 		string word;
 
 		while (stream >> word) {
-			if (word.at(word.length() - 1) == ',') {
-				word.pop_back();
-				tokens.push_back(word);
-				tokens.push_back(",");
-			}
-			else {
-				tokens.push_back(word);
-			}
+			tokens.push_back(word);
 		}
 
 		stream.close();
@@ -66,7 +61,6 @@ public:
 	}
 };
 
-/*���̺� �����͸� �����ϰ� */
 class Table {
 
 private:
@@ -80,9 +74,9 @@ private:
 
 	const State table[11][5] = {
 		//month     num1     num2      ,         others 
-		{ DT_MONTH, DT_NUM2, DT_START, DT_START, DT_START}, //start
-	{ DT_START, DT_NUM1, DT_NUM1, DT_COM1, DT_START}, //month
-	{ DT_START, DT_NUM1, DT_NUM1, DT_START, DT_START}, //com1
+		{ DT_MONTH, DT_NUM2, DT_START, DT_START, DT_START }, //start
+	{ DT_START, DT_NUM1, DT_NUM1, DT_COM1, DT_START }, //month
+	{ DT_START, DT_NUM1, DT_NUM1, DT_START, DT_START }, //com1
 	{ DT_ACCEPT_4, DT_START, DT_ACCEPT_1_2, DT_ACCEPT_4, DT_START }, //com2
 	{ DT_ACCEPT_3, DT_START, DT_START, DT_START, DT_START },//com3
 	{ DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM2, DT_ACCEPT_5 },//num1
@@ -95,6 +89,7 @@ private:
 
 	};
 
+	/* Accept 여부를 확인하기 위한 boolean 배열*/
 	bool Accept[11];
 
 	int get_symbolset(string token) {
@@ -164,19 +159,9 @@ public:
 
 		return table[state][symbol];
 	}
-
-	State start_state() {
-		return DT_START;
-	}
-
+ 
 	bool is_Accept(State state) {
 		return Accept[state];
-	}
-
-	void print_accept() {
-		for (int i = 0; i < 11; i++) {
-			cout << Accept[i] << endl;
-		}
 	}
 };
 
@@ -201,7 +186,7 @@ public:
 
 		string temp = "";
 
-		for (int i = 49; i < size; i++) {
+		for (int i = 0; i < size; i++) {
 
 			State new_state = table.getNext(state, tokens[i]);
 
@@ -218,20 +203,21 @@ public:
 				temp.clear();
 			}
 
-			if (table.is_Accept(new_state)) {
-				if (!temp.empty()) {
-					if (new_state == DT_ACCEPT_4) {
-						temp.pop_back();
-					}
-					result.push_back(temp);
-					temp.clear();
+			if (table.is_Accept(new_state) && !temp.empty()) {
+				/*마지막 쉼표 떼기*/
+				string last_letter = temp.substr(temp.length() - 1, temp.length());
+				if (last_letter == ",") {
+					temp.pop_back();
 				}
+				result.push_back(temp);
+				temp.clear();
 			}
+
 			state = new_state;
 		}
 
 	}
- 
+
 	void print_result() {
 
 		if (result.empty()) {
@@ -244,6 +230,7 @@ public:
 		for (int i = 0; i < size; i++) {
 			cout << result[i] << endl;
 		}
+		cout <<  result.size() << endl;
 	}
 
 	void write_to_file(string filePath) {
@@ -255,13 +242,13 @@ public:
 		int j = 1;
 
 		for (int i = 0; i < size; i++) {
-			
+
 			if (j > 20) {
 				break;
 			}
-			
+
 			string temp = "(" + to_string(j) + ")";
-			
+
 			if (!result[i].empty()) {
 				stream << temp + result[i] << endl;
 				j++;
@@ -269,20 +256,6 @@ public:
 		}
 		string temp = "total data pattern: ";
 		stream << temp + to_string(result.size());
-	}
-
-	bool remain_tokens(int state, int i) {
-		int size = tokens.size();
-
-		if (i + 1 > size) {
-			return false;
-		}
-		else if (table.getNext(state, tokens[i + 1]) != DT_START) {
-			return true;
-		}
-		else {
-			return false;
-		}
 	}
 
 };
