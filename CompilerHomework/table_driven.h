@@ -1,6 +1,30 @@
 #ifndef TABLE_DRIVEN_H
 #define TABLE_DRIVEN_H
  
+enum symbols {
+	MONTH,
+	NUM1,
+	NUM2,
+	REST,
+	NOT_TOKEN
+};
+
+enum states {
+	DT_START,
+	DT_MONTH,
+	DT_COM1,
+	DT_COM2,
+	DT_COM3,
+	DT_NUM1,
+	DT_NUM2,
+
+	DT_ACCEPT_1_2,
+	DT_ACCEPT_3,
+	DT_ACCEPT_4,
+	DT_ACCEPT_5,
+};
+
+
 typedef int State;
 
 class SymbolSet {
@@ -36,29 +60,6 @@ public:
 	int get_enumValue();
 
 	std::string get_name();
-};
-
-enum symbols {
-	MONTH,
-	NUM1,
-	NUM2,
-	REST,
-	NOT_TOKEN
-};
-
-enum states {
-	DT_START,
-	DT_MONTH,
-	DT_COM1,
-	DT_COM2,
-	DT_COM3,
-	DT_NUM1,
-	DT_NUM2,
-
-	DT_ACCEPT_1_2,
-	DT_ACCEPT_3,
-	DT_ACCEPT_4,
-	DT_ACCEPT_5,
 };
 
 
