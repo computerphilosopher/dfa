@@ -1,12 +1,31 @@
  #include <string>
 #include <vector>
+#include <iostream>
 #include "table_driven.h"
-/* ----------Table -------------*/
 
 using namespace std;
-
-
+ 
+/* ----------Table -------------*/
 Table::Table(){
+
+}
+
+Table::Table(const State arr[], int row, int col) {
+
+	//vector < vector <State> > temp;
+	
+	for (int i = 0; i < row; i++) {
+		std::vector<State> elem;
+		elem.resize(col);
+		table.push_back(elem);
+	}
+
+	for (int i = 0; i < row; i++) {
+		for (int j = 0; j < col; j++) {
+			table[i][j] = arr[(i*col) + j];
+		}
+	}
+	
 	for (int i = 0; i < 11; i++) {
 		accept[i] = { false };
 	}
@@ -14,9 +33,19 @@ Table::Table(){
 		accept[i] = { true };
 	}
 
+	//this->table =temp;
+	startState = 0;
+	this->rowSize = row;
+	this->colSize = col;
 }
 
-Table::Table(vector<SymbolSet> symbolSet){
+Table::~Table() {
+
+}
+
+void Table::set_start_state(int startState) {
+
+	this->startState = startState;
 
 }
 
@@ -26,19 +55,20 @@ void Table::add_symbol(SymbolSet symbol) {
 
 State Table::get_next(State state, string token) {
 
-	int symbol = get_symbolset(token);
+	int symbol = get_symbol_set(token);
 
 	return table[state][symbol];
 }
+
 State Table::start_state() {
-	return DT_START;
+	return startState;
 }
 
 bool Table::is_accept(State state) {
 	return accept[state];
 }
 
-int Table::get_symbolset(string input) {
+int Table::get_symbol_set(string input) {
 
 	int size = symbolSet.size();
 
@@ -48,6 +78,17 @@ int Table::get_symbolset(string input) {
 		}
 	}
 	return NOT_TOKEN;
+}
+
+void Table::print_table() {
+
+	for (int i = 0; i < rowSize; i++) {
+		for (int j = 0; j < colSize; j++) {
+			cout << to_string(table[i][j]) + " ";
+		}
+		cout << endl;
+	}
+
 }
 
 /* ---------- SymbolSet-------------*/

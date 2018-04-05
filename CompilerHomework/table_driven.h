@@ -67,10 +67,10 @@ public:
 class Table {
 
 private:
-
-	bool accept[11];
+ bool accept[11];
 	std::vector<SymbolSet> symbolSet;
 	
+	/*
 	const State table[11][5] = {
 		//month     num1     num2      ,         others 
 		{ DT_MONTH, DT_NUM2, DT_START, DT_START, DT_START }, //start
@@ -87,25 +87,35 @@ private:
 	{ DT_START, DT_START, DT_START,DT_START, DT_START }, //accept 5
 
 	};
+	*/
 
+	std::vector < std::vector < State > > table;
+
+	int rowSize;
+	int colSize;
+
+	int startState;
  
-	int get_symbolset(std::string input);
+	int get_symbol_set(std::string input);
 
 public:
 
 	Table();
 
-	Table(State *arr, int rowSize, int colSize);
+	Table(const State arr[], int row, int col);
 
-	Table(std::vector<SymbolSet> symbolSet);
+	~Table();
 
 	void add_symbol(SymbolSet symbol);
 
 	State get_next(State state, std::string token);
-
+	
+	void set_start_state(int startState);
 	State start_state();
 
 	bool is_accept(State state);
+
+	void print_table();
 };
 
 
