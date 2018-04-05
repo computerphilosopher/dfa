@@ -31,7 +31,7 @@ public:
 		stream.close();
 	}
 
-	vector<string> getTokens() {
+	vector<string> GetTokens() {
 		return tokens;
 	}
 };
@@ -41,19 +41,20 @@ class DFA {
 
 private:
 	vector<string> tokens;
-	Table table;
+	Table *table;
 	vector<string> result;
 	int count_result;
 
 public:
 
-	DFA(vector<string> tokens, SymbolSet set[], int set_size) {
+	DFA(vector<string> tokens, Table table) {
 		
 		this->tokens = tokens;
+		this->table = &table;
+ 
+	}
 
-		for (int i = 0; i < set_size; i++) {
-			table.add_symbol(set[i]);
-		}
+	~DFA(){
 
 	}
 
@@ -61,26 +62,26 @@ public:
 
 		int size = tokens.size();
 
-		State state = table.start_state();
+		State state = table->start_state();
 
 		string temp = "";
 
 		for (int i = 0; i < size; i++) {
 
-			State new_state = table.getNext(state, tokens[i]);
+			State new_state = table->get_next(state, tokens[i]);
 
-			if (new_state != table.start_state()) {
+			if (new_state != table->start_state()) {
 				temp.append(tokens[i]);
 			}
 
 			else {//new_state == DT_START
-				if (table.is_Accept(state)){
+				if (table->is_accept(state)){
 					result.push_back(temp);
 				}
 				temp.clear();
 			}
 
-			if (table.is_Accept(new_state) && !temp.empty()) {
+			if (table->is_accept(new_state) && !temp.empty()) {
 				result.push_back(temp);
 				temp.clear();
 			}
@@ -90,7 +91,7 @@ public:
 
 	}
 
-	void print_result() {
+	void PrintResult() {
 
 		if (result.empty()) {
 			cout << "result is empty" << endl;
@@ -105,7 +106,7 @@ public:
 		cout << result.size() << endl;
 	}
 
-	void write_to_file(string filePath) {
+	void WriteToFile(string filePath) {
 
 		ofstream stream;
 		stream.open(filePath, ios::trunc);
@@ -137,7 +138,7 @@ int main() {
 	Tokenizer tokenizer("hw2-sample.txt");
 	tokenizer.ToTokens();
 
-	vector<string> tokens = tokenizer.getTokens();
+	vector<string> tokens = tokenizer.GetTokens();
 
 	vector<string> month_tokens = {
 		"Jan.", "January", "Feb.", "February", "Mar.", "March",
@@ -148,10 +149,8 @@ int main() {
 
 	SymbolSet symbolSet[3] = { SymbolSet("month", symbols::MONTH, month_tokens), SymbolSet("NUM1", symbols::NUM1, 1, 31), SymbolSet("NUM2", symbols::NUM1, 32, 2999) };
 
-	DFA dfa(tokens, symbolSet, 3);
+	//DFA dfa(tokens);
 
-	dfa.Run();
-	dfa.print_result();
 
 	getchar();
 

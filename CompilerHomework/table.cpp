@@ -6,12 +6,12 @@
 using namespace std;
 
 
-Table::Table() {
+Table::Table(){
 	for (int i = 0; i < 11; i++) {
-		Accept[i] = { false };
+		accept[i] = { false };
 	}
 	for (int i = DT_ACCEPT_1_2; i <= DT_ACCEPT_5; i++) {
-		Accept[i] = { true };
+		accept[i] = { true };
 	}
 
 }
@@ -24,7 +24,7 @@ void Table::add_symbol(SymbolSet symbol) {
 	symbolSet.push_back(symbol);
 }
 
-State Table::getNext(State state, string token) {
+State Table::get_next(State state, string token) {
 
 	int symbol = get_symbolset(token);
 
@@ -34,8 +34,8 @@ State Table::start_state() {
 	return DT_START;
 }
 
-bool Table::is_Accept(State state) {
-	return Accept[state];
+bool Table::is_accept(State state) {
+	return accept[state];
 }
 
 int Table::get_symbolset(string input) {

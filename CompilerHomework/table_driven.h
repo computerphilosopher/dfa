@@ -30,6 +30,7 @@ typedef int State;
 class SymbolSet {
 
 private:
+	
 	enum token_type {
 		INTEGER,
 		STRING
@@ -67,7 +68,7 @@ class Table {
 
 private:
 
-	bool Accept[11];
+	bool accept[11];
 	std::vector<SymbolSet> symbolSet;
 	
 	const State table[11][5] = {
@@ -87,24 +88,24 @@ private:
 
 	};
 
-	/* Accept 여부를 확인하기 위한 boolean 배열*/
-
-
+ 
 	int get_symbolset(std::string input);
 
 public:
 
 	Table();
 
+	Table(State *arr, int rowSize, int colSize);
+
 	Table(std::vector<SymbolSet> symbolSet);
 
 	void add_symbol(SymbolSet symbol);
 
-	State getNext(State state, std::string token);
+	State get_next(State state, std::string token);
 
 	State start_state();
 
-	bool is_Accept(State state);
+	bool is_accept(State state);
 };
 
 
