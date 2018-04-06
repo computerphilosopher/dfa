@@ -10,10 +10,20 @@ Table::Table(){
 
 }
 
+void Table::default_init(int row, int col) {
+	
+	this->rowSize = row;
+	this->colSize = col;
+	
+	startState = 0;
+	not_token = col;
+
+}
+
 Table::Table(const State arr[], int row, int col) {
 
-	//vector < vector <State> > temp;
-	
+	default_init(row, col);
+
 	for (int i = 0; i < row; i++) {
 		std::vector<State> elem;
 		elem.resize(col);
@@ -26,20 +36,24 @@ Table::Table(const State arr[], int row, int col) {
 		}
 	}
 	
-	for (int i = 0; i < 11; i++) {
-		accept[i] = { false };
-	}
+	accept.resize(table.size(), false);
+	fill(accept.begin(), accept.end(), false);
+
 	for (int i = DT_ACCEPT_1_2; i <= DT_ACCEPT_5; i++) {
 		accept[i] = { true };
 	}
 
-	//this->table =temp;
-	startState = 0;
-	this->rowSize = row;
-	this->colSize = col;
 }
 
 Table::~Table() {
+
+}
+
+void Table::set_accept(State arr[], int size) {
+
+	for (int i = 0; i < size; i++) {
+		accept[arr[i]] = true;
+	}
 
 }
 

@@ -73,6 +73,7 @@ public:
 
 			if (newState != table.start_state()) {
 				temp.append(tokens[i]);
+				temp.append(" "); //공백 추가
 			}
 
 			else {//new_state == START
@@ -170,6 +171,9 @@ int main(){
 
 	Table table(arr, 11, 5);
 	table.set_start_state(DT_START);
+
+	State accept[4] = { DT_ACCEPT_1_2, DT_ACCEPT_3, DT_ACCEPT_4, DT_ACCEPT_5};
+	table.set_accept(accept, 4);
 	
 	for (int i = 0; i < 3; i++) {
 		table.add_symbol(symbolSet[i]);
