@@ -10,10 +10,10 @@ using namespace std;
 /* 파일을 문자열의 벡터로 바꾸어주는 클래스*/
 class Tokenizer {
 
-private:
+ private:
 	vector <string> tokens;
 	string filePath;
-public:
+ public:
 
 	Tokenizer(string filePath) {
 		this->filePath = filePath;
@@ -48,23 +48,18 @@ private:
 public:
 
 	DFA(vector<string> tokens, Table table) {
-		
 		this->tokens = tokens;
 		this->table = table;
-
- 
 	}
 
-	~DFA(){
+	~DFA() {
 
 	}
 
 	void run() {
 
 		int size = tokens.size();
-
 		State state = table.start_state();
- 
 		string temp = "";
 
 		for (int i = 0; i < size; i++) {
@@ -77,7 +72,7 @@ public:
 			}
 
 			else {//new_state == START
-				if (table.is_accept(state)){
+				if (table.is_accept(state)) {
 					result.push_back(temp);
 				}
 				temp.clear();
@@ -135,7 +130,7 @@ public:
 	}
 };
 
-int main(){
+int main() {
 
 
 	Tokenizer tokenizer("hw2-sample.txt");
@@ -152,41 +147,79 @@ int main(){
 
 	SymbolSet symbolSet[3] = { SymbolSet("month", symbols::MONTH, monthTokens), SymbolSet("NUM1", symbols::NUM1, 1, 31), SymbolSet("NUM2", symbols::NUM1, 32, 2999) };
 
-	const State arr [55] = {
-		//month     num1     num2      ,         others 
-		 DT_MONTH, DT_NUM2, DT_START, DT_START, DT_START , //start
-	 DT_START, DT_NUM1, DT_NUM1, DT_COM1, DT_START, //month
-	DT_START, DT_NUM1, DT_NUM1, DT_START, DT_START, //com1
-	DT_ACCEPT_4, DT_START, DT_ACCEPT_1_2, DT_ACCEPT_4, DT_START, //com2
-	DT_ACCEPT_3, DT_START, DT_START, DT_START, DT_START,//com3
-	DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM2, DT_ACCEPT_5,//num1
-	DT_START, DT_START, DT_START, DT_COM3, DT_START, //num2
+	const State arr[55] = {
+		//month   num1     num2      comma     others 
+		DT_MONTH, DT_NUM2, DT_START, DT_START, DT_START , //start
+		DT_START, DT_NUM1, DT_NUM1, DT_COM1, DT_START, //month
+		DT_START, DT_NUM1, DT_NUM1, DT_START, DT_START, //com1
+		DT_ACCEPT_4, DT_START, DT_ACCEPT_1_2, DT_ACCEPT_4, DT_START, //com2
+		DT_ACCEPT_3, DT_START, DT_START, DT_START, DT_START,//com3
+		DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM2, DT_ACCEPT_5,//num1
+		DT_START, DT_START, DT_START, DT_COM3, DT_START, //num2
 
-	DT_START, DT_START, DT_START,DT_START, DT_START, //accpet 1,2
-	DT_START, DT_START, DT_START,DT_START, DT_START, //accept 3
-	DT_START, DT_START, DT_START,DT_START, DT_START, //accept 4
-	DT_START, DT_START, DT_START,DT_START, DT_START //accept 5
+		DT_START, DT_START, DT_START,DT_START, DT_START, //accpet 1,2
+		DT_START, DT_START, DT_START,DT_START, DT_START, //accept 3
+		DT_START, DT_START, DT_START,DT_START, DT_START, //accept 4
+		DT_START, DT_START, DT_START,DT_START, DT_START //accept 5
 
 	};
 
 	Table table(arr, 11, 5);
 	table.set_start_state(DT_START);
 
-	State accept[4] = { DT_ACCEPT_1_2, DT_ACCEPT_3, DT_ACCEPT_4, DT_ACCEPT_5};
+	State accept[4] = { DT_ACCEPT_1_2, DT_ACCEPT_3, DT_ACCEPT_4, DT_ACCEPT_5 };
 	table.set_accept(accept, 4);
-	
+
 	for (int i = 0; i < 3; i++) {
 		table.add_symbol(symbolSet[i]);
 	}
 
-
 	DFA dfa(tokens, table);
 
- dfa.run();
+	dfa.run();
 
 	dfa.print_result();
- 
+
 	getchar();
+
+	enum STATES {
+		MORE, // >
+		EQUAL, // ==
+		AND, // &&
+		OR, // ||
+		ACC_MORE_EQUAL // >=
+	};
+
+	enum SYMBOL {
+		MORE, // <
+		EQUAL, // =
+		AND, // &
+		OR, // | 
+		NOT_TOKEN
+	};
+
+	STATES::MORE;
+	SYMBOL::MORE;
+
+	next_state = table[current_state][current_symbol];
+
+	/* >= */
+	if (isAccept(table[STATES::MORE][SYMBOL::EQUAL)){
+		add_to_lexeme();
+	}
+
+	current_state = new_state;
+
+
+	enum Symbol {
+		ALPHABET, 
+		LETTER,
+		DIGIT,
+		NON_ZERO,
+		HEX,
+			
+	};
 
 	return 0;
 }
+`

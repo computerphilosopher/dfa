@@ -1,5 +1,7 @@
 #ifndef TABLE_DRIVEN_H
 #define TABLE_DRIVEN_H
+
+
  
 enum symbols {
 	MONTH,
@@ -23,6 +25,7 @@ enum states {
 	DT_ACCEPT_4,
 	DT_ACCEPT_5,
 };
+
 
 
 typedef int State;
@@ -98,8 +101,10 @@ public:
 	void set_start_state(int startState);
 	State start_state();
 
-	void set_accept(int arr[], int size);
+	void set_accept(State arr[], int size);
 	bool is_accept(State state);
+
+	void Table::set_not_token(int enumValue);
 
 	void print_table();
 };
