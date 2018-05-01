@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include <fstream>
+#include <streambuf>
 #include <vector>
 #include <string>
 #include <cstring>
@@ -12,13 +13,14 @@ class Tokenizer {
 
  private:
 	vector <string> tokens;
+	vector <string> str;
 	string filePath;
  public:
 
 	Tokenizer(string filePath) {
 		this->filePath = filePath;
 	}
-
+ 
 	void ToTokens() {
 
 		ifstream stream(filePath, ios::in);
@@ -26,29 +28,30 @@ class Tokenizer {
 
 		while (stream >> word) {
 			tokens.push_back(word);
-		}
+		} 
 
 		stream.close();
 	}
+
 
 	vector<string> GetTokens() {
 		return tokens;
 	}
 };
- 
+
 
 class DFA {
 
 private:
-	vector<string> tokens;
+	vector<string> words;
 	Table table;
 	vector<string> result;
 	int count_result;
 
 public:
 
-	DFA(vector<string> tokens, Table table) {
-		this->tokens = tokens;
+	DFA(vector<string> words, Table table) {
+		this->words = words;
 		this->table = table;
 	}
 
@@ -58,35 +61,41 @@ public:
 
 	void run() {
 
-		int size = tokens.size();
+		int wordCount = words.size();
 		State state = table.start_state();
 		string temp = "";
 
-		for (int i = 0; i < size; i++) {
+		for (int i = 0; i < wordCount; i++) {
 
-			State newState = table.get_next(state, tokens[i]);
+			int wordLength = words[i].length();
 
-			if (newState != table.start_state()) {
-				temp.append(tokens[i]);
-				temp.append(" "); //공백 추가
-			}
+			for (int j = 0; j < wordLength; j++) {
 
-			else {//new_state == START
-				if (table.is_accept(state)) {
-					result.push_back(temp);
+				string s(words[i], j, i);
+				State newState = table.get_next(state, s);
+
+				if (newState != table.start_state()) {
+					temp.append(s);
 				}
-				temp.clear();
-			}
 
-			if (table.is_accept(newState) && !temp.empty()) {
-				result.push_back(temp);
-				temp.clear();
-			}
+				else {//new_state == START
+					if (table.is_accept(state)) {
+						result.push_back(temp);
+					}
+					temp.clear();
+				}
 
-			state = newState;
+				if (table.is_accept(newState) && !temp.empty()) {
+					result.push_back(temp);
+					temp.clear();
+				}
+
+				state = newState;
+			}
 		}
-
 	}
+
+
 
 	void print_result() {
 
@@ -139,7 +148,7 @@ enum SYMBOLS {
 	BACK_SLASH, QUOTE, DOUBLE_QUOTE,
 
 	ALPHABET, LETTER,
-	DIGIT, ZERO, NON_ZERO, HEX, 
+	DIGIT, ZERO, NON_ZERO, HEX,
 	NOT_TOKEN
 
 };
@@ -296,15 +305,16 @@ void table_set(Table &table) {
 
 
 	table.set_accept(arr, 29);
+	table.set_start_state(START);
 
 }
- 
+
 void add_symbolSet() {
 
 }
- 
+
 int main() {
- 
+
 	Tokenizer tokenizer("lexer_test.txt");
 	tokenizer.ToTokens();
 
@@ -320,7 +330,7 @@ int main() {
 	const vector<string> symbolName = {
 		"ADD", "SUB", "MUL", "DIV", "MOD",
 		"EQUAL", "MORE", "LESS", "AND", "OR", "NOT",
-		"SEMI", "COM", "x", "X",
+		"SEMI", "COM", "SMALL_X", "LARGE_X",
 		"LEFT_PAREN", "RIGHT_PAREN", "LEFT_CURL", "RIGHT_CURL", "LEFT_SQUARE", "RIGHT_SQUARE",
 		"BACK_SLASH", "QUOTE", "DOUBLE_QUOTE",
 

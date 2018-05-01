@@ -112,6 +112,7 @@ int Table::get_symbol_set(string input) {
 
 	for (int i = 0; i < size; i++) {
 		if (symbolSet[i].is_in_set(input)) {
+			cout << symbolSet[i].get_name() << endl;
 			return symbolSet[i].get_enumValue();
 		}
 	}
@@ -162,6 +163,7 @@ SymbolSet::SymbolSet(string name, int enumValue, vector<string> tokens) {
 SymbolSet::SymbolSet(string name, int enumValue, string token) {
 	init(name, enumValue);
 	this->tokens.push_back(token);
+	this->type = STRING;
 }
 
 SymbolSet::SymbolSet(string name, int enumValue, int start, int end) {
