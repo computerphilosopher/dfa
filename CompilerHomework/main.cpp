@@ -58,6 +58,12 @@ private:
 
 	map <string, int> keywordsMap;
 	map <int, TokenValue> tokenMap;
+
+	vector <TokenValue> idList;
+	vector <string> charLiteral;
+	vector <string> stringLiteral;
+	vector <string> intLiteral;
+	vector <string> hexLiteral;
  
 public:
 
@@ -82,20 +88,47 @@ public:
 
 	}
 
-	void save_id(string id, int tokenNum) {
+	bool is_literal(State acceptState) {
+		return (ACC_CHAR <= acceptState && acceptState <= ACC_ZERO);
+	}
+
+	void save_literal(string id, State acceptState )  {
+
+		switch (acceptState) {
+		case ACC_CHAR:
+			id.pop_back();
+			charLiteral.push_back(id);
+			break;
+		case ACC_STRING:
+			id.pop_back();
+			stringLiteral.push_back(id);
+			break;
+		case ACC_DECIMAL:
+			intLiteral.push_back(id);
+			break;
+		case ACC_ZERO:
+			intLiteral.push_back(id);
+			break;
+		case ACC_HEX:
+			hexLiteral.push_back(id);
+			break;
+		}
+	}
+
+	void save_id(string id) {
 
 		TokenValue t;
+
 		if (is_keyword(id)) {
 			t.id = id;
 			t.num = keywordsMap[id];
-			tokenMap[tokenNum] = t;
 		}
 		else {
 			t.id = id;
 			t.num = IDENTIFIER;
-			
-			tokenMap[tokenNum] = t;
 		}
+
+		idList.push_back(t);
 
 	}
 
@@ -109,16 +142,13 @@ public:
 			string temp = "";
 			int wordLength = words[i].length();
 
-			cout << words[i] << endl;
 
 			for (int j = 0; j <= wordLength; j++) {
 
 				string s = words[i].substr(j, 1);
-				cout << s << endl;
 
 				State newState = table.get_next(state, s);
 
-				cout << newState << endl;
 
 				if (newState != table.start_state()) {
 					temp.append(s);
@@ -126,15 +156,22 @@ public:
 					if (table.is_accept(newState)) {
 
 						result.push_back(temp);
-
+						int tokenNum = table.get_symbol_set(temp);
+						
 						if (newState == ACC_ID) {
-
-							int tokenNum = table.get_symbol_set(temp);
-
-							save_id(temp, tokenNum);
+							save_id(temp);
 						}
 
+						else if (is_literal(newState)) {
+							save_literal(temp, newState);
+						}
+
+						else {
+							TokenValue t = { temp, 0 };
+							tokenMap[tokenNum] = t;
+						}
 					}
+
 				}
 
 				else {
@@ -152,18 +189,27 @@ public:
 
 
 	void print_result() {
+		map <int, TokenValue>::iterator itMap;
 
-		if (result.empty()) {
-			cout << "result is empty" << endl;
-			return;
+		for (itMap = tokenMap.begin(); itMap != tokenMap.end(); ++itMap) {
+			cout << "tokenNum:" << itMap->first << " tokenID:" << itMap->second.id << " tokenValue:" << itMap->second.num << endl;
 		}
 
-		int size = result.size();
-
-		for (int i = 0; i < size; i++) {
-			cout << result[i] << endl;
+		for (int i = 0; i < idList.size(); i++) {
+			cout << idList[i].id << " " << idList[i].num << endl;
 		}
-		cout << result.size() << endl;
+		
+		for (int i = 0; i < charLiteral.size(); i++) {
+			cout << charLiteral[i] + " " + charLiteral[i] << endl;
+		}
+		for (int i = 0; i < stringLiteral.size(); i++) {
+			cout << stringLiteral[i] + " " + stringLiteral[i] << endl;
+		}
+
+		for (int i = 0; i < intLiteral.size(); i++) {
+			cout << intLiteral[i] + " " + intLiteral[i] << endl;
+		}
+
 	}
 
 	void write_to_file(string filePath) {

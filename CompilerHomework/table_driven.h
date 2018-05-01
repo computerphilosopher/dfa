@@ -28,7 +28,7 @@ enum SYMBOLS {
 	NOT_TOKEN
 
 };
-
+ 
 enum STATES {
 	START,
 	IN_ASSIGN, IN_MORE, IN_LESS, IN_NOT, IN_ID, IN_AND, IN_OR,
@@ -46,7 +46,7 @@ enum STATES {
 	ACC_ID, ACC_CHAR, ACC_STRING,
 	ACC_DECIMAL, ACC_HEX, ACC_ZERO
 };
-
+ 
 
 typedef int State;
 
