@@ -46,6 +46,7 @@ private:
 	vector<string> words;
 	Table table;
 	vector<string> result;
+	vector<string> errors;
 	int count_result;
 
 public:
@@ -63,26 +64,19 @@ public:
 
 		int wordCount = words.size();
 		State state = table.start_state();
-		string temp = "";
 
 		for (int i = 0; i < wordCount; i++) {
 
+			string temp = "";
 			int wordLength = words[i].length();
 
 			for (int j = 0; j < wordLength; j++) {
- 
+
 				string s = words[i].substr(j, 1);
 				State newState = table.get_next(state, s);
 
-				if (newState != table.start_state()) {
-					temp.append(s);
-				}
-
-				else {//new_state == START
-					if (table.is_accept(state)) {
-						result.push_back(temp);
-					}
-					temp.clear();
+				if(newState == table.start_state()) {
+					errors.push_back(temp);
 				}
 
 				if (table.is_accept(newState) && !temp.empty()) {
@@ -92,6 +86,7 @@ public:
 
 				state = newState;
 			}
+
 		}
 	}
 
@@ -226,8 +221,8 @@ void table_set(Table &table) {
 
 	}
 
-	vector<State> letter = {ALPHABET, ZERO, NON_ZERO };
-	vector<State> digit = {ZERO, NON_ZERO};
+	vector<State> letter = { ALPHABET, ZERO, NON_ZERO };
+	vector<State> digit = { ZERO, NON_ZERO };
 
 	table.map_other(STATES::IN_ASSIGN, SYMBOLS::EQUAL, STATES::ACC_ASSIGN);
 	table.map_state(STATES::IN_ASSIGN, SYMBOLS::EQUAL, STATES::ACC_EQUAL);
@@ -373,11 +368,10 @@ int main() {
 
 	table_set(table);
 
-	table.print_table();
-
 	DFA dfa(tokens, table);
 	dfa.run();
- 
+	dfa.print_result();
+
 	getchar();
 
 }
