@@ -133,93 +133,40 @@ public:
 int main() {
 
 
-	Tokenizer tokenizer("hw2-sample.txt");
+	Tokenizer tokenizer("lexer_test.txt");
 	tokenizer.ToTokens();
 
 	vector<string> tokens = tokenizer.GetTokens();
 
-	vector<string> monthTokens = {
-		"Jan.", "January", "Feb.", "February", "Mar.", "March",
-		"Apr.", "April", "May", "May", "June", "June",
-		"July", "July", "Aug.", "August", "Sep.", "September",
-		"Oct.", "October", "Nov.", "November", "Dec.", "December"
-	};
+	enum SYMBOLS {
+		ADD, SUB, MUL, DIV, MOD,
+		EQUAL, MORE, LESS, AND, OR,
+		SEMI, COM,
+		LEFT_PAREN, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL, LEFT_SQUARE, RIGHT_SQUARE,
 
-	SymbolSet symbolSet[3] = { SymbolSet("month", symbols::MONTH, monthTokens), SymbolSet("NUM1", symbols::NUM1, 1, 31), SymbolSet("NUM2", symbols::NUM1, 32, 2999) };
-
-	const State arr[55] = {
-		//month   num1     num2      comma     others 
-		DT_MONTH, DT_NUM2, DT_START, DT_START, DT_START , //start
-		DT_START, DT_NUM1, DT_NUM1, DT_COM1, DT_START, //month
-		DT_START, DT_NUM1, DT_NUM1, DT_START, DT_START, //com1
-		DT_ACCEPT_4, DT_START, DT_ACCEPT_1_2, DT_ACCEPT_4, DT_START, //com2
-		DT_ACCEPT_3, DT_START, DT_START, DT_START, DT_START,//com3
-		DT_ACCEPT_5, DT_ACCEPT_5, DT_ACCEPT_5, DT_COM2, DT_ACCEPT_5,//num1
-		DT_START, DT_START, DT_START, DT_COM3, DT_START, //num2
-
-		DT_START, DT_START, DT_START,DT_START, DT_START, //accpet 1,2
-		DT_START, DT_START, DT_START,DT_START, DT_START, //accept 3
-		DT_START, DT_START, DT_START,DT_START, DT_START, //accept 4
-		DT_START, DT_START, DT_START,DT_START, DT_START //accept 5
+		ALPHABET, LETTER,
+		DIGIT, NON_ZERO, HEX,
+		BACK_SLASH, QUOTE, DOUBLE_QUOTE
 
 	};
-
-	Table table(arr, 11, 5);
-	table.set_start_state(DT_START);
-
-	State accept[4] = { DT_ACCEPT_1_2, DT_ACCEPT_3, DT_ACCEPT_4, DT_ACCEPT_5 };
-	table.set_accept(accept, 4);
-
-	for (int i = 0; i < 3; i++) {
-		table.add_symbol(symbolSet[i]);
-	}
-
-	DFA dfa(tokens, table);
-
-	dfa.run();
-
-	dfa.print_result();
-
-	getchar();
-
+	
 	enum STATES {
-		MORE, // >
-		EQUAL, // ==
-		AND, // &&
-		OR, // ||
-		ACC_MORE_EQUAL // >=
+		IN_ASSIGN, IN_MORE, IN_LESS, IN_NOT, IN_ID,
+		IN_CHAR, IN_CHAR2, BACK_SLASH, 
+		IN_STRING, ESCAPE,
+		IN_ZERO, IN_DECIMAL, IN_HEX,
+
+		ACC_ADD, ACC_SUB, ACC_MUL, ACC_DIV, ACC_MOD, 
+		ACC_EQUAL, ACC_MORE, ACC_EQUAL_MORE, ACC_LESS, ACC_EQUAL_LESS, 
+		ACC_NOT, ACC_NOT_EQUAL, ACC_AND, ACC_OR,
+
+		ACC_LEFT_PAREN, ACC_LEFT_CURL, ACC_LEFT_SQUARE,
+		ACC_RIGHT_PAREN, ACC_RIGHT_CURL, ACC_RIGHT_SQUARE,
+
+		ACC_ID, ACC_CHAR, ACC_STRING,
+		ACC_DECIMAL, ACC_HEX, ACC_ZERO
 	};
 
-	enum SYMBOL {
-		MORE, // <
-		EQUAL, // =
-		AND, // &
-		OR, // | 
-		NOT_TOKEN
-	};
-
-	STATES::MORE;
-	SYMBOL::MORE;
-
-	next_state = table[current_state][current_symbol];
-
-	/* >= */
-	if (isAccept(table[STATES::MORE][SYMBOL::EQUAL)){
-		add_to_lexeme();
-	}
-
-	current_state = new_state;
 
 
-	enum Symbol {
-		ALPHABET, 
-		LETTER,
-		DIGIT,
-		NON_ZERO,
-		HEX,
-			
-	};
-
-	return 0;
 }
-`

@@ -4,11 +4,8 @@
 
  
 enum symbols {
-	MONTH,
-	NUM1,
-	NUM2,
-	REST,
-	NOT_TOKEN
+	
+	
 };
 
 enum states {
@@ -57,10 +54,11 @@ private:
 public:
 	
 	SymbolSet(std::string name, int enumValue, std::vector<std::string> tokens);
-
+	SymbolSet(string name, int enumValue, string token);
 	SymbolSet(std::string name, int enumValue, int start, int end);
 
 	bool is_in_set(std::string input);
+
 
 	int get_enumValue();
  
@@ -79,7 +77,7 @@ private:
 	int rowSize;
 	int colSize;
 
-	int startState;
+	State startState;
 	int not_token;
 
 	int get_symbol_set(std::string input);
@@ -89,7 +87,7 @@ public:
 	Table();
 
 	Table(const State arr[], int row, int col);
-
+	Table(int row, int col, State startState);
 	~Table();
 
 	void default_init(int row, int col);
@@ -103,8 +101,7 @@ public:
 
 	void set_accept(State arr[], int size);
 	bool is_accept(State state);
-
-	void Table::set_not_token(int enumValue);
+	void set_not_token(int enumValue);
 
 	void print_table();
 };

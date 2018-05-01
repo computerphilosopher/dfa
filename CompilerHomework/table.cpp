@@ -40,6 +40,20 @@ Table::Table(const State arr[], int row, int col) {
 	fill(accept.begin(), accept.end(), false);
 }
 
+Table::Table(int row, int col, State startState) {
+	default_init(row, col);
+
+	set_start_state(startState);
+ 
+	for (int i = 0; i < row; i++) {
+		for (int j = 0; j < col; j++) {
+			
+			table[i][j] = startState;
+
+		}
+	}
+}
+
 Table::~Table() {
 
 }
@@ -52,7 +66,7 @@ void Table::set_accept(State arr[], int size) {
 
 }
 
-void Table::set_start_state(int startState) {
+void Table::set_start_state(State startState) {
 
 	this->startState = startState;
 
@@ -65,7 +79,7 @@ void Table::add_symbol(SymbolSet symbol) {
 void Table::set_not_token(int enumValue) {
 
 	not_token = enumValue;
- 
+
 }
 
 State Table::get_next(State state, string token) {
@@ -87,7 +101,7 @@ int Table::get_symbol_set(string input) {
 
 	int size = symbolSet.size();
 
-	for(int i = 0; i < size; i++) {
+	for (int i = 0; i < size; i++) {
 		if (symbolSet[i].is_in_set(input)) {
 			return symbolSet[i].get_enumValue();
 		}
@@ -117,6 +131,11 @@ SymbolSet::SymbolSet(string name, int enumValue, vector<string> tokens) {
 	init(name, enumValue);
 	this->tokens = tokens;
 	this->type = STRING;
+}
+
+SymbolSet::SymbolSet(string name, int enumValue, string token) {
+	init(name, enumValue);
+	this->tokens.push_back(token);
 }
 
 SymbolSet::SymbolSet(string name, int enumValue, int start, int end) {
