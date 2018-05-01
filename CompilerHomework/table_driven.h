@@ -15,6 +15,35 @@ enum states {
 	DT_ACCEPT_4,
 	DT_ACCEPT_5,
 };
+enum SYMBOLS {
+	ADD, SUB, MUL, DIV, MOD,
+	EQUAL, MORE, LESS, AND, OR, NOT,
+	SEMI, COM, SMALL_X, LARGE_X,
+	LEFT_PAREN, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL, LEFT_SQUARE, RIGHT_SQUARE,
+	BACK_SLASH, QUOTE, DOUBLE_QUOTE,
+
+	ALPHABET, ZERO, NON_ZERO, HEX,
+	NOT_TOKEN
+
+};
+
+enum STATES {
+	START,
+	IN_ASSIGN, IN_MORE, IN_LESS, IN_NOT, IN_ID, IN_AND, IN_OR,
+	IN_CHAR, IN_CHAR2, ESCAPE_CHAR,
+	IN_STRING, ESCAPE_STRING,
+	IN_ZERO, IN_DECIMAL, IN_HEX,
+
+	ACC_ADD, ACC_SUB, ACC_MUL, ACC_DIV, ACC_MOD,
+	ACC_ASSIGN, ACC_EQUAL, ACC_MORE, ACC_EQUAL_MORE, ACC_LESS, ACC_EQUAL_LESS,
+	ACC_NOT, ACC_NOT_EQUAL, ACC_AND, ACC_OR,
+
+	ACC_SEMI, ACC_COM,
+	ACC_LEFT_PAREN, ACC_RIGHT_PAREN, ACC_LEFT_CURL, ACC_RIGHT_CURL, ACC_LEFT_SQUARE, ACC_RIGHT_SQUARE,
+
+	ACC_ID, ACC_CHAR, ACC_STRING,
+	ACC_DECIMAL, ACC_HEX, ACC_ZERO
+};
 
 
 
@@ -72,7 +101,9 @@ private:
 	State startState;
 	int not_token;
 
-	int get_symbol_set(std::string input);
+	int get_symbol_set(State state, std::string input);
+	std::vector<std::string> statesName;
+
 
 public:
 
@@ -85,7 +116,10 @@ public:
 	void default_init(int row, int col);
 
 	void map_state(State domain, int symbolEnum, State codomain);
+	void map_state(State domain, std::vector<int> symbolEnum, State codomain);
+
 	void map_other(State domain, int notOther, State codomain);
+	void map_other(State domain, std::vector<State> notOthers, State codomain);
 	void add_symbol(SymbolSet symbol);
 
 	State get_next(State state, std::string token);

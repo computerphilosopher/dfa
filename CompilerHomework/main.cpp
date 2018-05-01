@@ -70,8 +70,8 @@ public:
 			int wordLength = words[i].length();
 
 			for (int j = 0; j < wordLength; j++) {
-
-				string s(words[i], j, i);
+ 
+				string s = words[i].substr(j, 1);
 				State newState = table.get_next(state, s);
 
 				if (newState != table.start_state()) {
@@ -140,36 +140,6 @@ public:
 };
 
 
-enum SYMBOLS {
-	ADD, SUB, MUL, DIV, MOD,
-	EQUAL, MORE, LESS, AND, OR, NOT,
-	SEMI, COM, SMALL_X, LARGE_X,
-	LEFT_PAREN, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL, LEFT_SQUARE, RIGHT_SQUARE,
-	BACK_SLASH, QUOTE, DOUBLE_QUOTE,
-
-	ALPHABET, LETTER,
-	DIGIT, ZERO, NON_ZERO, HEX,
-	NOT_TOKEN
-
-};
-
-enum STATES {
-	START,
-	IN_ASSIGN, IN_MORE, IN_LESS, IN_NOT, IN_ID, IN_AND, IN_OR,
-	IN_CHAR, IN_CHAR2, ESCAPE_CHAR,
-	IN_STRING, ESCAPE_STRING,
-	IN_ZERO, IN_DECIMAL, IN_HEX,
-
-	ACC_ADD, ACC_SUB, ACC_MUL, ACC_DIV, ACC_MOD,
-	ACC_ASSIGN, ACC_EQUAL, ACC_MORE, ACC_EQUAL_MORE, ACC_LESS, ACC_EQUAL_LESS,
-	ACC_NOT, ACC_NOT_EQUAL, ACC_AND, ACC_OR,
-
-	ACC_SEMI, ACC_COM,
-	ACC_LEFT_PAREN, ACC_RIGHT_PAREN, ACC_LEFT_CURL, ACC_RIGHT_CURL, ACC_LEFT_SQUARE, ACC_RIGHT_SQUARE,
-
-	ACC_ID, ACC_CHAR, ACC_STRING,
-	ACC_DECIMAL, ACC_HEX, ACC_ZERO
-};
 
 void table_set(Table &table) {
 
@@ -250,10 +220,14 @@ void table_set(Table &table) {
 		case NON_ZERO:
 			range = IN_DECIMAL;
 			break;
+
 		}
 		table.map_state(START, i, range);
 
 	}
+
+	vector<State> letter = {ALPHABET, ZERO, NON_ZERO };
+	vector<State> digit = {ZERO, NON_ZERO};
 
 	table.map_other(STATES::IN_ASSIGN, SYMBOLS::EQUAL, STATES::ACC_ASSIGN);
 	table.map_state(STATES::IN_ASSIGN, SYMBOLS::EQUAL, STATES::ACC_EQUAL);
@@ -270,23 +244,25 @@ void table_set(Table &table) {
 	table.map_state(STATES::IN_AND, SYMBOLS::AND, STATES::ACC_AND);
 	table.map_state(STATES::IN_OR, SYMBOLS::OR, STATES::ACC_OR);
 
-	table.map_other(STATES::IN_ID, SYMBOLS::LETTER, STATES::ACC_ID);
-	table.map_state(STATES::IN_ID, SYMBOLS::LETTER, STATES::IN_ID);
+	vector<State> in_id_others = { ALPHABET, NON_ZERO, ZERO };
+	table.map_other(STATES::IN_ID, in_id_others, STATES::ACC_ID);
 
-	table.map_state(STATES::IN_CHAR, SYMBOLS::LETTER, STATES::IN_CHAR2);
+	table.map_state(STATES::IN_CHAR, letter, STATES::IN_CHAR2);
 
 	table.map_state(STATES::IN_CHAR2, SYMBOLS::BACK_SLASH, STATES::ESCAPE_CHAR);
 	table.map_state(STATES::IN_CHAR2, SYMBOLS::QUOTE, STATES::ACC_CHAR);
 
-	table.map_state(STATES::ESCAPE_CHAR, SYMBOLS::LETTER, IN_CHAR2);
+	table.map_state(STATES::ESCAPE_CHAR, letter, IN_CHAR2);
 
 	table.map_state(STATES::IN_STRING, SYMBOLS::BACK_SLASH, STATES::ESCAPE_STRING);
 	table.map_state(STATES::IN_STRING, SYMBOLS::DOUBLE_QUOTE, STATES::ACC_STRING);
-	table.map_state(STATES::ESCAPE_STRING, SYMBOLS::LETTER, STATES::IN_STRING);
+	table.map_state(STATES::ESCAPE_STRING, SYMBOLS::ALPHABET, STATES::IN_STRING);
 
-	table.map_other(STATES::IN_DECIMAL, SYMBOLS::DIGIT, STATES::ACC_DECIMAL);
-	table.map_state(STATES::IN_DECIMAL, SYMBOLS::DIGIT, STATES::IN_DECIMAL);
+	table.map_other(STATES::IN_DECIMAL, digit, STATES::ACC_DECIMAL);
+	table.map_state(STATES::IN_DECIMAL, digit, STATES::IN_DECIMAL);
 
+	vector <State> in_zero_notothers = { SMALL_X, LARGE_X };
+	table.map_other(STATES::IN_ZERO, in_zero_notothers, STATES::ACC_ZERO);
 	table.map_state(STATES::IN_ZERO, SYMBOLS::SMALL_X, STATES::IN_HEX);
 	table.map_state(STATES::IN_ZERO, SYMBOLS::LARGE_X, STATES::IN_HEX);
 
@@ -334,8 +310,7 @@ int main() {
 		"LEFT_PAREN", "RIGHT_PAREN", "LEFT_CURL", "RIGHT_CURL", "LEFT_SQUARE", "RIGHT_SQUARE",
 		"BACK_SLASH", "QUOTE", "DOUBLE_QUOTE",
 
-		"ALPHABET", "LETTER",
-		"DIGIT", "ZERO", "NON_ZERO", "HEX",
+		"ALPHABET", "ZERO", "NON_ZERO", "HEX"
 
 	};
 
@@ -347,7 +322,6 @@ int main() {
 	}
 
 	vector<string> alphabetString;
-	vector<string> digitString;
 	vector<string> hexString;
 	vector<string> nonzeroString;
 
@@ -355,7 +329,6 @@ int main() {
 		char c = i - '0';
 		string s(1, c);
 
-		digitString.push_back(s);
 		hexString.push_back(s);
 
 		if (i > 0) {
@@ -379,16 +352,12 @@ int main() {
 	}
 
 	/* letter = (alphabet | digit) */
-	vector<string> letterString(digitString.size() + alphabetString.size());
-	letterString.insert(letterString.end(), alphabetString.begin(), alphabetString.end());
-	letterString.insert(letterString.end(), digitString.begin(), digitString.end());
 
 	SymbolSet alphabet("ALPHABET", SYMBOLS::ALPHABET, alphabetString);
-	SymbolSet digit("DIGIT", SYMBOLS::DIGIT, digitString);
-	SymbolSet letter("LETTER", SYMBOLS::LETTER, letterString);
 	SymbolSet nonZero("NON_ZERO", SYMBOLS::NON_ZERO, nonzeroString);
 	SymbolSet hex("HEX", SYMBOLS::HEX, hexString);
 	SymbolSet zero("ZERO", SYMBOLS::ZERO, "0");
+	SymbolSet not_token("not_token", SYMBOLS::NOT_TOKEN, "?");
 
 	Table table(STATES::ACC_ZERO + 1, SYMBOLS::NOT_TOKEN + 1, STATES::START);
 
@@ -397,18 +366,18 @@ int main() {
 	}
 
 	table.add_symbol(alphabet);
-	table.add_symbol(letter);
-	table.add_symbol(digit);
+	table.add_symbol(zero);
 	table.add_symbol(nonZero);
 	table.add_symbol(hex);
-	table.add_symbol(zero);
+	table.add_symbol(not_token);
 
 	table_set(table);
 
+	table.print_table();
+
 	DFA dfa(tokens, table);
 	dfa.run();
-	dfa.print_result();
-
+ 
 	getchar();
 
 }

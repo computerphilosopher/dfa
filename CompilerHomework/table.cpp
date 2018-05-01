@@ -4,25 +4,45 @@
 #include "table_driven.h"
 
 using namespace std;
- 
+
+
 /* ----------Table -------------*/
-Table::Table(){
+Table::Table() {
 
 }
-
 void Table::default_init(int row, int col) {
-	
+
 	this->rowSize = row;
 	this->colSize = col;
-	
+
 	startState = 0;
 	not_token = col - 1;
-	
+
 	for (int i = 0; i < row; i++) {
 		std::vector<State> elem;
 		elem.resize(col);
 		table.push_back(elem);
 	}
+	
+	vector <string> Name = {
+		"START",
+		"IN_ASSIGN", "IN_MORE", "IN_LESS", "IN_NOT", "IN_ID", "IN_AND", "IN_OR",
+		"IN_CHAR", "IN_CHAR2", "ESCAPE_CHAR",
+		"IN_STRING", "ESCAPE_STRING",
+		"IN_ZERO", "IN_DECIMAL", "IN_HEX",
+
+		"ACC_ADD", "ACC_SUB", "ACC_MUL", "ACC_DIV", "ACC_MOD",
+		"ACC_ASSIGN", "ACC_EQUAL", "ACC_MORE", "ACC_EQUAL_MORE", "ACC_LESS", "ACC_EQUAL_LESS",
+		"ACC_NOT", "ACC_NOT_EQUAL", "ACC_AND", "ACC_OR",
+
+		"ACC_SEMI", "ACC_COM",
+		"ACC_LEFT_PAREN", "ACC_RIGHT_PAREN", "ACC_LEFT_CURL", "ACC_RIGHT_CURL", "ACC_LEFT_SQUARE", "ACC_RIGHT_SQUARE",
+
+		"ACC_ID", "ACC_CHAR", "ACC_STRING",
+		"ACC_DECIMAL", "ACC_HEX", "ACC_ZERO"
+	};
+
+	statesName = Name;
 }
 
 Table::Table(const State arr[], int row, int col) {
@@ -93,7 +113,7 @@ void Table::set_not_token(int enumValue) {
 
 State Table::get_next(State state, string token) {
 
-	int symbol = get_symbol_set(token);
+	int symbol = get_symbol_set(state, token);
 
 	return table[state][symbol];
 }
@@ -106,13 +126,14 @@ bool Table::is_accept(State state) {
 	return accept[state];
 }
 
-int Table::get_symbol_set(string input) {
+int Table::get_symbol_set(State state, string input) {
 
 	int size = symbolSet.size();
 
 	for (int i = 0; i < size; i++) {
 		if (symbolSet[i].is_in_set(input)) {
-			cout << symbolSet[i].get_name() << endl;
+
+			string name = symbolSet[i].get_name();
 			return symbolSet[i].get_enumValue();
 		}
 	}
@@ -123,7 +144,7 @@ void Table::print_table() {
 
 	for (int i = 0; i < rowSize; i++) {
 		for (int j = 0; j < colSize; j++) {
-			cout << to_string(table[i][j]) + " ";
+			cout << statesName[table[i][j]] + " ";
 		}
 		cout << endl;
 	}
@@ -136,6 +157,17 @@ void Table::map_state(State domain, int symbolEnum, State codomain) {
 
 }
 
+void Table::map_state(State domain, vector<int> symbolEnum, State codomain) {
+
+	for (State i = 0; i < symbolEnum.size(); i++) {
+
+		table[domain][i] = codomain;
+	}
+
+}
+
+
+
 void Table::map_other(State domain, int notOther, State codomain) {
 
 	for (int j = 0; j < colSize; j++) {
@@ -144,6 +176,20 @@ void Table::map_other(State domain, int notOther, State codomain) {
 		}
 	}
 
+}
+void Table::map_other(State domain, vector<State> notOthers, State codomain) {
+
+	bool isException = false;
+	for (int i = 0; i < colSize; i++) {
+		for (int j = 0; j < notOthers.size(); j++) {
+			if (i == notOthers[j]) {
+				isException = true;
+			}
+		}
+		if (!isException) {
+			table[domain][i] = codomain;
+		}
+	}
 }
 
 /* ---------- SymbolSet-------------*/
