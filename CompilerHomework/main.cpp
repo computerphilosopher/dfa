@@ -193,6 +193,8 @@ int main() {
 	}
 
 	vector<string> alphabetSymbols;
+	vector<string> digitSymbols;
+	vector<string> nonzeroSymbols;
 
 	for (char i = 'A'; i <= 'Z'; i++) {
 
@@ -204,9 +206,21 @@ int main() {
 		
 	}
 
-	for (int i = 0; i < alphabetSymbols.size(); i++) {
-		cout << alphabetSymbols[i] << endl;
+	for (int i = 0; i <= 9; i++) {
+		char c = i - '0';
+		string s(1, c);
+
+		digitSymbols.push_back(s);
+
+		if (i > 0) {
+			nonzeroSymbols.push_back(s);
+		}
 	}
+
+	vector<string> letterSymbols(digitSymbols.size() + alphabetSymbols.size());
+	letterSymbols.insert(letterSymbols.end(), alphabetSymbols.begin(), alphabetSymbols.end());
+	letterSymbols.insert(letterSymbols.end(), digitSymbols.begin(), digitSymbols.end());
+
 
 	getchar();
 
