@@ -23,6 +23,8 @@ enum SYMBOLS {
 	BACK_SLASH, QUOTE, DOUBLE_QUOTE,
 
 	ALPHABET, ZERO, NON_ZERO, HEX,
+	IF, ELSE, INT, CHAR, VOID, WHILE, RETURN, MAIN, 
+	IDENTIFIER,
 	NOT_TOKEN
 
 };
@@ -44,7 +46,6 @@ enum STATES {
 	ACC_ID, ACC_CHAR, ACC_STRING,
 	ACC_DECIMAL, ACC_HEX, ACC_ZERO
 };
-
 
 
 typedef int State;
@@ -82,6 +83,8 @@ public:
 	bool is_in_set(std::string input);
  
 	int get_enumValue();
+
+
  
 	std::string get_name();
 };
@@ -101,7 +104,6 @@ private:
 	State startState;
 	int not_token;
 
-	int get_symbol_set(State state, std::string input);
 	std::vector<std::string> statesName;
 
 
@@ -122,6 +124,7 @@ public:
 	void map_other(State domain, std::vector<State> notOthers, State codomain);
 	void add_symbol(SymbolSet symbol);
 
+	int get_symbol_set(std::string input);
 	State get_next(State state, std::string token);
 
 	void set_start_state(int startState);
@@ -130,7 +133,7 @@ public:
 	void set_accept(State arr[], int size);
 	bool is_accept(State state);
 	void set_not_token(int enumValue);
-
+	int get_token_num(std::string symbol);
 	void print_table();
 };
 

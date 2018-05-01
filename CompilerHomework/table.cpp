@@ -40,8 +40,7 @@ void Table::default_init(int row, int col) {
 
 		"ACC_ID", "ACC_CHAR", "ACC_STRING",
 		"ACC_DECIMAL", "ACC_HEX", "ACC_ZERO"
-	};
-
+	}; 
 	statesName = Name;
 }
 
@@ -113,7 +112,7 @@ void Table::set_not_token(int enumValue) {
 
 State Table::get_next(State state, string token) {
 
-	int symbol = get_symbol_set(state, token);
+	int symbol = get_symbol_set(token);
 
 	return table[state][symbol];
 }
@@ -126,14 +125,13 @@ bool Table::is_accept(State state) {
 	return accept[state];
 }
 
-int Table::get_symbol_set(State state, string input) {
+int Table::get_symbol_set(string input) {
 
 	int size = symbolSet.size();
 
 	for (int i = 0; i < size; i++) {
 		if (symbolSet[i].is_in_set(input)) {
 
-			string name = symbolSet[i].get_name();
 			return symbolSet[i].get_enumValue();
 		}
 	}
@@ -161,7 +159,7 @@ void Table::map_state(State domain, vector<int> symbolEnum, State codomain) {
 
 	for (State i = 0; i < symbolEnum.size(); i++) {
 
-		table[domain][i] = codomain;
+		table[domain][symbolEnum[i]] = codomain;
 	}
 
 }
@@ -178,19 +176,21 @@ void Table::map_other(State domain, int notOther, State codomain) {
 
 }
 void Table::map_other(State domain, vector<State> notOthers, State codomain) {
-
-	bool isException = false;
+ 
 	for (int i = 0; i < colSize; i++) {
+		bool isException = false;
 		for (int j = 0; j < notOthers.size(); j++) {
-			if (i == notOthers[j]) {
+			if (notOthers[j] == i) {
 				isException = true;
 			}
 		}
+
 		if (!isException) {
 			table[domain][i] = codomain;
 		}
 	}
 }
+
 
 /* ---------- SymbolSet-------------*/
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <map>
 #include "table_driven.h" 
 
 using namespace std;
@@ -49,14 +50,52 @@ private:
 	vector<string> errors;
 	int count_result;
 
+	typedef struct TokenValue {
+
+		string id;
+		int num;
+	}TokenValue;
+
+	map <string, int> keywordsMap;
+	map <int, TokenValue> tokenMap;
+ 
 public:
 
-	DFA(vector<string> words, Table table) {
+	DFA(vector<string> words, Table table, map <string, int> keywordsMap) {
 		this->words = words;
 		this->table = table;
+		this->keywordsMap = keywordsMap;
+
 	}
 
 	~DFA() {
+
+	}
+
+	void push_symbol_table() {
+
+	}
+
+	bool is_keyword(string word) {
+
+		return keywordsMap.find(word) != keywordsMap.end();
+
+	}
+
+	void save_id(string id, int tokenNum) {
+
+		TokenValue t;
+		if (is_keyword(id)) {
+			t.id = id;
+			t.num = keywordsMap[id];
+			tokenMap[tokenNum] = t;
+		}
+		else {
+			t.id = id;
+			t.num = IDENTIFIER;
+			
+			tokenMap[tokenNum] = t;
+		}
 
 	}
 
@@ -70,22 +109,42 @@ public:
 			string temp = "";
 			int wordLength = words[i].length();
 
-			for (int j = 0; j < wordLength; j++) {
+			cout << words[i] << endl;
+
+			for (int j = 0; j <= wordLength; j++) {
 
 				string s = words[i].substr(j, 1);
+				cout << s << endl;
+
 				State newState = table.get_next(state, s);
 
-				if(newState == table.start_state()) {
-					errors.push_back(temp);
+				cout << newState << endl;
+
+				if (newState != table.start_state()) {
+					temp.append(s);
+
+					if (table.is_accept(newState)) {
+
+						result.push_back(temp);
+
+						if (newState == ACC_ID) {
+
+							int tokenNum = table.get_symbol_set(temp);
+
+							save_id(temp, tokenNum);
+						}
+
+					}
 				}
 
-				if (table.is_accept(newState) && !temp.empty()) {
-					result.push_back(temp);
+				else {
 					temp.clear();
+					temp.append(s);
 				}
-
 				state = newState;
 			}
+
+			temp.clear();
 
 		}
 	}
@@ -212,11 +271,13 @@ void table_set(Table &table) {
 			break;
 		case ZERO:
 			range = IN_ZERO;
+			break;
 		case NON_ZERO:
 			range = IN_DECIMAL;
 			break;
 
 		}
+
 		table.map_state(START, i, range);
 
 	}
@@ -239,8 +300,8 @@ void table_set(Table &table) {
 	table.map_state(STATES::IN_AND, SYMBOLS::AND, STATES::ACC_AND);
 	table.map_state(STATES::IN_OR, SYMBOLS::OR, STATES::ACC_OR);
 
-	vector<State> in_id_others = { ALPHABET, NON_ZERO, ZERO };
-	table.map_other(STATES::IN_ID, in_id_others, STATES::ACC_ID);
+	table.map_other(STATES::IN_ID, letter, STATES::ACC_ID);
+	table.map_state(STATES::IN_ID, letter, STATES::IN_ID);
 
 	table.map_state(STATES::IN_CHAR, letter, STATES::IN_CHAR2);
 
@@ -276,7 +337,6 @@ void table_set(Table &table) {
 
 
 	table.set_accept(arr, 29);
-	table.set_start_state(START);
 
 }
 
@@ -298,6 +358,7 @@ int main() {
 		"\\", "'", "\""
 	};
 
+
 	const vector<string> symbolName = {
 		"ADD", "SUB", "MUL", "DIV", "MOD",
 		"EQUAL", "MORE", "LESS", "AND", "OR", "NOT",
@@ -315,6 +376,7 @@ int main() {
 		SymbolSet temp(symbolName[i], i, specialSymbol[i]);
 		specialSymbolSet.push_back(temp);
 	}
+
 
 	vector<string> alphabetString;
 	vector<string> hexString;
@@ -346,7 +408,6 @@ int main() {
 
 	}
 
-	/* letter = (alphabet | digit) */
 
 	SymbolSet alphabet("ALPHABET", SYMBOLS::ALPHABET, alphabetString);
 	SymbolSet nonZero("NON_ZERO", SYMBOLS::NON_ZERO, nonzeroString);
@@ -368,7 +429,17 @@ int main() {
 
 	table_set(table);
 
-	DFA dfa(tokens, table);
+	map<string, int> keywordMap;
+
+	keywordMap["if"] = IF;
+	keywordMap["else"] = ELSE;
+	keywordMap["int"] = INT;
+	keywordMap["char"] = CHAR;
+	keywordMap["void"] = VOID;
+	keywordMap["while"] = WHILE;
+	keywordMap["return"] = MAIN;
+
+	DFA dfa(tokens, table, keywordMap);
 	dfa.run();
 	dfa.print_result();
 
