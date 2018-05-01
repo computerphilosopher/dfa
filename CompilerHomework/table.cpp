@@ -17,25 +17,32 @@ void Table::default_init(int row, int col) {
 	
 	startState = 0;
 	not_token = col - 1;
-
+	
+	for (int i = 0; i < row; i++) {
+		std::vector<State> elem;
+		elem.resize(col);
+		table.push_back(elem);
+	}
 }
 
 Table::Table(const State arr[], int row, int col) {
 
 	default_init(row, col);
 
+	/*
 	for (int i = 0; i < row; i++) {
 		std::vector<State> elem;
 		elem.resize(col);
 		table.push_back(elem);
 	}
+	*/
 
 	for (int i = 0; i < row; i++) {
 		for (int j = 0; j < col; j++) {
 			table[i][j] = arr[(i*col) + j];
 		}
 	}
-	
+
 	accept.resize(table.size(), false);
 	fill(accept.begin(), accept.end(), false);
 }
@@ -44,14 +51,16 @@ Table::Table(int row, int col, State startState) {
 	default_init(row, col);
 
 	set_start_state(startState);
- 
+
 	for (int i = 0; i < row; i++) {
 		for (int j = 0; j < col; j++) {
-			
+
 			table[i][j] = startState;
 
 		}
 	}
+	accept.resize(table.size(), false);
+	fill(accept.begin(), accept.end(), false);
 }
 
 Table::~Table() {
@@ -119,6 +128,23 @@ void Table::print_table() {
 	}
 
 }
+
+void Table::map_state(State domain, int symbolEnum, State codomain) {
+
+	table[domain][symbolEnum] = codomain;
+
+}
+
+void Table::map_other(State domain, int notOther, State codomain) {
+
+	for (int j = 0; j < colSize; j++) {
+		if (j != notOther) {
+			table[domain][j] = codomain;
+		}
+	}
+
+}
+
 /* ---------- SymbolSet-------------*/
 
 void SymbolSet::init(string name, int enumValue) {

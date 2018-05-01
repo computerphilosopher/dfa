@@ -1,13 +1,6 @@
 #ifndef TABLE_DRIVEN_H
 #define TABLE_DRIVEN_H
 
-
- 
-enum symbols {
-	
-	
-};
-
 enum states {
 	DT_START,
 	DT_MONTH,
@@ -58,8 +51,7 @@ public:
 	SymbolSet(std::string name, int enumValue, int start, int end);
 
 	bool is_in_set(std::string input);
-
-
+ 
 	int get_enumValue();
  
 	std::string get_name();
@@ -92,6 +84,8 @@ public:
 
 	void default_init(int row, int col);
 
+	void map_state(State domain, int symbolEnum, State codomain);
+	void map_other(State domain, int notOther, State codomain);
 	void add_symbol(SymbolSet symbol);
 
 	State get_next(State state, std::string token);
