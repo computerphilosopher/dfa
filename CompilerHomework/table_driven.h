@@ -54,7 +54,7 @@ private:
 public:
 	
 	SymbolSet(std::string name, int enumValue, std::vector<std::string> tokens);
-	SymbolSet(string name, int enumValue, string token);
+	SymbolSet(std::string name, int enumValue, std::string token);
 	SymbolSet(std::string name, int enumValue, int start, int end);
 
 	bool is_in_set(std::string input);

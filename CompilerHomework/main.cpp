@@ -130,6 +130,35 @@ public:
 	}
 };
 
+
+enum SYMBOLS {
+	ADD, SUB, MUL, DIV, MOD,
+	EQUAL, MORE, LESS, AND, OR,
+	SEMI, COM,
+	LEFT_PAREN, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL, LEFT_SQUARE, RIGHT_SQUARE,
+
+	ALPHABET, LETTER,
+	DIGIT, NON_ZERO, HEX,
+	BACK_SLASH, QUOTE, DOUBLE_QUOTE
+
+};
+
+enum STATES {
+	IN_ASSIGN, IN_MORE, IN_LESS, IN_NOT, IN_ID,
+	IN_CHAR, IN_CHAR2, ESCAPE_CHAR,
+	IN_STRING, ESCAPE_STRING,
+	IN_ZERO, IN_DECIMAL, IN_HEX,
+
+	ACC_ADD, ACC_SUB, ACC_MUL, ACC_DIV, ACC_MOD,
+	ACC_EQUAL, ACC_MORE, ACC_EQUAL_MORE, ACC_LESS, ACC_EQUAL_LESS,
+	ACC_NOT, ACC_NOT_EQUAL, ACC_AND, ACC_OR,
+
+	ACC_LEFT_PAREN, ACC_RIGHT_PAREN, ACC_LEFT_CURL, ACC_RIGHT_CURL, ACC_LEFT_SQUARE, ACC_RIGHT_SQUARE,
+
+	ACC_ID, ACC_CHAR, ACC_STRING,
+	ACC_DECIMAL, ACC_HEX, ACC_ZERO
+};
+
 int main() {
 
 
@@ -137,36 +166,49 @@ int main() {
 	tokenizer.ToTokens();
 
 	vector<string> tokens = tokenizer.GetTokens();
-
-	enum SYMBOLS {
-		ADD, SUB, MUL, DIV, MOD,
-		EQUAL, MORE, LESS, AND, OR,
-		SEMI, COM,
-		LEFT_PAREN, RIGHT_PAREN, LEFT_CURL, RIGHT_CURL, LEFT_SQUARE, RIGHT_SQUARE,
-
-		ALPHABET, LETTER,
-		DIGIT, NON_ZERO, HEX,
-		BACK_SLASH, QUOTE, DOUBLE_QUOTE
-
-	};
-	
-	enum STATES {
-		IN_ASSIGN, IN_MORE, IN_LESS, IN_NOT, IN_ID,
-		IN_CHAR, IN_CHAR2, BACK_SLASH, 
-		IN_STRING, ESCAPE,
-		IN_ZERO, IN_DECIMAL, IN_HEX,
-
-		ACC_ADD, ACC_SUB, ACC_MUL, ACC_DIV, ACC_MOD, 
-		ACC_EQUAL, ACC_MORE, ACC_EQUAL_MORE, ACC_LESS, ACC_EQUAL_LESS, 
-		ACC_NOT, ACC_NOT_EQUAL, ACC_AND, ACC_OR,
-
-		ACC_LEFT_PAREN, ACC_LEFT_CURL, ACC_LEFT_SQUARE,
-		ACC_RIGHT_PAREN, ACC_RIGHT_CURL, ACC_RIGHT_SQUARE,
-
-		ACC_ID, ACC_CHAR, ACC_STRING,
-		ACC_DECIMAL, ACC_HEX, ACC_ZERO
+ 
+	const vector<string> specialSymbol = { "+", "-", "/", "%",
+		"=", ">", "<", "&", "|",
+		";", ",",
+		"(", ")", "{", "}", "[", "]"
 	};
 
+	const vector<string> symbolName = {
+		"ADD", "SUB", "MUL", "DIV", "MOD",
+		"EQUAL", "MORE", "LESS", "AND", "OR",
+		"SEMI", "COM",
+		"LEFT_PAREN", "RIGHT_PAREN", "LEFT_CURL", "RIGHT_CURL", "LEFT_SQUARE", "RIGHT_SQUARE",
+
+		"ALPHABET", "LETTER",
+		"DIGIT", "NON_ZERO", "HEX",
+		"BACK_SLASH", "QUOTE", "DOUBLE_QUOTE"
+
+	};
+
+	vector <SymbolSet>  symbolSets;
+
+	for (int i = SYMBOLS::ADD; i < SYMBOLS::RIGHT_SQUARE; i++) {
+		SymbolSet temp(symbolName[i], i, specialSymbol[i]);
+		symbolSets.push_back(temp);
+	}
+
+	vector<string> alphabetSymbols;
+
+	for (char i = 'A'; i <= 'Z'; i++) {
+
+		string capital(1, i);
+		string small(1, i + ' ');
+
+		alphabetSymbols.push_back(capital);
+		alphabetSymbols.push_back(small);
+		
+	}
+
+	for (int i = 0; i < alphabetSymbols.size(); i++) {
+		cout << alphabetSymbols[i] << endl;
+	}
+
+	getchar();
 
 
 }
